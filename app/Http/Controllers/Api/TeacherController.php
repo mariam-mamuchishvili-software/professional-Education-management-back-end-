@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreTeacherRequest;
+use App\Http\Requests\UpdateTeacherRequest;
+use App\Http\Resources\TeacherResource;
+use App\Models\Teacher;
 
 class TeacherController extends Controller
 {
@@ -12,38 +15,48 @@ class TeacherController extends Controller
      */
     public function index()
     {
-        //
+        return TeacherResource::collection(
+            Teacher::all()
+        );
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreTeacherRequest $request)
     {
-        //
+        $teacher = Teacher::create($request->validated());
+
+        return new TeacherResource($teacher);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Teacher $teacher)
     {
-        //
+        return new TeacherResource($teacher);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateTeacherRequest $request, Teacher $teacher)
     {
-        //
+        $teacher->update($request->validated());
+
+        return new TeacherResource($teacher);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Teacher $teacher)
     {
-        //
+        $teacher->delete();
+
+        return response()->json([
+            'message' => 'Teacher deleted successfully',
+        ]);
     }
 }

@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreGroupRequest;
+use App\Http\Requests\UpdateGroupRequest;
+use App\Http\Resources\GroupResource;
+use App\Models\Group;
 
 class GroupController extends Controller
 {
@@ -12,38 +15,48 @@ class GroupController extends Controller
      */
     public function index()
     {
-        //
+        return GroupResource::collection(
+            Group::all()
+        );
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreGroupRequest $request)
     {
-        //
+        $group = Group::create($request->validated());
+
+        return new GroupResource($group);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Group $group)
     {
-        //
+        return new GroupResource($group);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateGroupRequest $request, Group $group)
     {
-        //
+        $group->update($request->validated());
+
+        return new GroupResource($group);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Group $group)
     {
-        //
+        $group->delete();
+
+        return response()->json([
+            'message' => 'Group deleted successfully',
+        ]);
     }
 }
