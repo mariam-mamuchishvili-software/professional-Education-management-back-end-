@@ -13,6 +13,15 @@ return new class extends Migration
     {
         Schema::create('group_student', function (Blueprint $table) {
             $table->id();
+
+            $table->foreignId('group_id')
+                ->constrained('groups')
+                ->cascadeOnDelete();
+
+            $table->foreignId('student_id')
+                ->constrained('students')
+                ->cascadeOnDelete();
+
             $table->timestamps();
         });
     }

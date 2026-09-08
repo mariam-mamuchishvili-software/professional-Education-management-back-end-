@@ -13,6 +13,16 @@ return new class extends Migration
     {
         Schema::create('groups', function (Blueprint $table) {
             $table->id();
+
+            $table->foreignId('profession_id')
+                ->constrained('professions')
+                ->cascadeOnDelete();
+
+            $table->string('name');
+            $table->string('code')->unique();
+            $table->integer('capacity');
+            $table->string('study_shift');
+
             $table->timestamps();
         });
     }

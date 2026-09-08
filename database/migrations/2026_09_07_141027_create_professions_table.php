@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('professions', function (Blueprint $table) {
             $table->id();
+
+            $table->string('name');
+            $table->string('code')->unique();
+            $table->text('description')->nullable();
+            $table->integer('duration');
+            $table->string('qualification');
+
             $table->timestamps();
         });
     }

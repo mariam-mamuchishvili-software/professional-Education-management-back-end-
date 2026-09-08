@@ -13,6 +13,15 @@ return new class extends Migration
     {
         Schema::create('collage_teacher', function (Blueprint $table) {
             $table->id();
+
+            $table->foreignId('college_id')
+                ->constrained('colleges')
+                ->cascadeOnDelete();
+
+            $table->foreignId('teacher_id')
+                ->constrained('teachers')
+                ->cascadeOnDelete();
+
             $table->timestamps();
         });
     }

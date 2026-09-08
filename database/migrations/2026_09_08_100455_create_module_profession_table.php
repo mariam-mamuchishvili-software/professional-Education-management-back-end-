@@ -13,6 +13,15 @@ return new class extends Migration
     {
         Schema::create('module_profession', function (Blueprint $table) {
             $table->id();
+
+            $table->foreignId('module_id')
+                ->constrained('modules')
+                ->cascadeOnDelete();
+
+            $table->foreignId('profession_id')
+                ->constrained('professions')
+                ->cascadeOnDelete();
+
             $table->timestamps();
         });
     }
