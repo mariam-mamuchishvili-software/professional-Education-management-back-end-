@@ -7,17 +7,25 @@ use App\Http\Requests\StoreProfessionRequest;
 use App\Http\Requests\UpdateProfessionRequest;
 use App\Http\Resources\ProfessionResource;
 use App\Models\Profession;
+use Illuminate\Http\Request;
 
 class ProfessionController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $skip = max((int) $request->query('skip', 0), 0);
+        $limit = max((int) $request->query('limit', 30), 1);
+
         return ProfessionResource::collection(
-            Profession::all()
-        );
+            Profession::skip($skip)->take($limit)->get()
+        )->additional([
+            'total' => Profession::count(),
+            'skip' => $skip,
+            'limit' => $limit,
+        ]);
     }
 
     /**

@@ -7,17 +7,25 @@ use App\Http\Requests\StoreCollegeRequest;
 use App\Http\Requests\UpdateCollegeRequest;
 use App\Http\Resources\CollegeResource;
 use App\Models\College;
+use Illuminate\Http\Request;
 
 class CollegeController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $skip = max((int) $request->query('skip', 0), 0);
+        $limit = max((int) $request->query('limit', 30), 1);
+
         return CollegeResource::collection(
-            College::all()
-        );
+            College::skip($skip)->take($limit)->get()
+        )->additional([
+            'total' => College::count(),
+            'skip' => $skip,
+            'limit' => $limit,
+        ]);
     }
 
     /**

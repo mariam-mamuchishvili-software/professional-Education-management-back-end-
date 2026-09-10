@@ -7,17 +7,25 @@ use App\Http\Requests\StoreModuleRequest;
 use App\Http\Requests\UpdateModuleRequest;
 use App\Http\Resources\ModuleResource;
 use App\Models\Module;
+use Illuminate\Http\Request;
 
 class ModuleController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $skip = max((int) $request->query('skip', 0), 0);
+        $limit = max((int) $request->query('limit', 30), 1);
+
         return ModuleResource::collection(
-            Module::all()
-        );
+            Module::skip($skip)->take($limit)->get()
+        )->additional([
+            'total' => Module::count(),
+            'skip' => $skip,
+            'limit' => $limit,
+        ]);
     }
 
     /**

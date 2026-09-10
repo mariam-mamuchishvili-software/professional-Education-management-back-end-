@@ -12,13 +12,16 @@ class ProfessionFactory extends Factory
 {
     /**
      * Define the model's default state.
-     *
-     * @return array<string, mixed>
      */
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->unique()->jobTitle(),
+            'code' => fake()->unique()->bothify('PRF-###'),
+            'description' => fake()->sentence(),
+            'duration' => fake()->numberBetween(1, 4),
+            'qualification' => fake()->randomElement(['Bachelor', 'Master', 'Diploma', 'Certificate']),
         ];
     }
 }
+

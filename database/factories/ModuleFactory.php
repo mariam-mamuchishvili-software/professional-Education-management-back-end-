@@ -18,7 +18,11 @@ class ModuleFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->unique()->words(2, true),
+            'code' => fake()->unique()->bothify('MOD-###'),
+            'description' => fake()->sentence(),
+            'duration' => fake()->numberBetween(10, 100),
+            'credits' => fake()->numberBetween(1, 10),
         ];
     }
 }

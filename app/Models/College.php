@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class College extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'name',
         'address',
@@ -16,6 +19,6 @@ class College extends Model
 
     public function teachers()
     {
-        return $this->belongsToMany(Teacher::class);
+        return $this->belongsToMany(Teacher::class, 'collage_teacher');
     }
 }

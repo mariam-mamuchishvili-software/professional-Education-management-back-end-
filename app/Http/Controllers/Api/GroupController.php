@@ -7,17 +7,25 @@ use App\Http\Requests\StoreGroupRequest;
 use App\Http\Requests\UpdateGroupRequest;
 use App\Http\Resources\GroupResource;
 use App\Models\Group;
+use Illuminate\Http\Request;
 
 class GroupController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $skip = max((int) $request->query('skip', 0), 0);
+        $limit = max((int) $request->query('limit', 30), 1);
+
         return GroupResource::collection(
-            Group::all()
-        );
+            Group::skip($skip)->take($limit)->get()
+        )->additional([
+            'total' => Group::count(),
+            'skip' => $skip,
+            'limit' => $limit,
+        ]);
     }
 
     /**
