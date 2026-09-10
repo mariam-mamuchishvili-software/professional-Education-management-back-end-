@@ -41,8 +41,14 @@ class TeacherController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Teacher $teacher)
+    public function show(int $id)
     {
+        $teacher = Teacher::find($id);
+
+        if (! $teacher) {
+            return response()->json(['message' => 'Teacher not found'], 404);
+        }
+
         return new TeacherResource($teacher);
     }
 

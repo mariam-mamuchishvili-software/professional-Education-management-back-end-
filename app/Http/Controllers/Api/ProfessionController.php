@@ -41,8 +41,14 @@ class ProfessionController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Profession $profession)
+    public function show(int $id)
     {
+        $profession = Profession::find($id);
+
+        if (! $profession) {
+            return response()->json(['message' => 'Profession not found'], 404);
+        }
+
         return new ProfessionResource($profession);
     }
 

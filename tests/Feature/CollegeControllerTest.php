@@ -30,6 +30,14 @@ class CollegeControllerTest extends TestCase
             ->assertJsonPath('data.id', $college->id);
     }
 
+    public function test_show_returns_404_for_nonexistent_college(): void
+    {
+        $response = $this->getJson('/api/colleges/999999');
+
+        $response->assertStatus(404)
+            ->assertJson(['message' => 'College not found']);
+    }
+
     public function test_store_creates_a_college(): void
     {
         $data = [
@@ -75,16 +83,16 @@ class CollegeControllerTest extends TestCase
     }
 
     public function test_destroy_deletes_a_college(): void
-  {
-    $college = College::factory()->create();
+    {
+        $college = College::factory()->create();
 
-    $response = $this->deleteJson("/api/colleges/{$college->id}");
+        $response = $this->deleteJson("/api/colleges/{$college->id}");
 
-    $response->assertStatus(200)
-        ->assertJsonPath('message', 'College deleted successfully');
+        $response->assertStatus(200)
+            ->assertJsonPath('message', 'College deleted successfully');
 
-    $this->assertDatabaseMissing('colleges', [
-        'id' => $college->id,
-    ]);
-   }
+        $this->assertDatabaseMissing('colleges', [
+            'id' => $college->id,
+        ]);
+    }
 }

@@ -30,6 +30,14 @@ class ModuleControllerTest extends TestCase
             ->assertJsonPath('data.id', $module->id);
     }
 
+    public function test_show_returns_404_for_nonexistent_module(): void
+    {
+        $response = $this->getJson('/api/modules/999999');
+
+        $response->assertStatus(404)
+            ->assertJson(['message' => 'Module not found']);
+    }
+
     public function test_store_creates_a_module(): void
     {
         $data = [

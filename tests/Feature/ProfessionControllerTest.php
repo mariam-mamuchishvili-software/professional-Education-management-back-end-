@@ -30,6 +30,14 @@ class ProfessionControllerTest extends TestCase
             ->assertJsonPath('data.id', $profession->id);
     }
 
+    public function test_show_returns_404_for_nonexistent_profession(): void
+    {
+        $response = $this->getJson('/api/professions/999999');
+
+        $response->assertStatus(404)
+            ->assertJson(['message' => 'Profession not found']);
+    }
+
     public function test_store_creates_a_profession(): void
     {
         $data = [

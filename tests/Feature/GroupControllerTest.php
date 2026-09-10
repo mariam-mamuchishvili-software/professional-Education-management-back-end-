@@ -31,6 +31,14 @@ class GroupControllerTest extends TestCase
             ->assertJsonPath('data.id', $group->id);
     }
 
+    public function test_show_returns_404_for_nonexistent_group(): void
+    {
+        $response = $this->getJson('/api/groups/999999');
+
+        $response->assertStatus(404)
+            ->assertJson(['message' => 'Group not found']);
+    }
+
     public function test_store_creates_a_group(): void
     {
         $profession = Profession::factory()->create();

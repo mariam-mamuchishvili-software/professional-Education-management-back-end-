@@ -30,6 +30,14 @@ class StudentControllerTest extends TestCase
             ->assertJsonPath('data.id', $student->id);
     }
 
+    public function test_show_returns_404_for_nonexistent_student(): void
+    {
+        $response = $this->getJson('/api/students/999999');
+
+        $response->assertStatus(404)
+            ->assertJson(['message' => 'Student not found']);
+    }
+
     public function test_store_creates_a_student(): void
     {
         $data = [

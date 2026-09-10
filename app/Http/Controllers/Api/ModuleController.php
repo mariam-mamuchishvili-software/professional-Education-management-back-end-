@@ -41,8 +41,14 @@ class ModuleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Module $module)
+    public function show(int $id)
     {
+        $module = Module::find($id);
+
+        if (! $module) {
+            return response()->json(['message' => 'Module not found'], 404);
+        }
+
         return new ModuleResource($module);
     }
 

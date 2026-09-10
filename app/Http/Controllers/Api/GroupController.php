@@ -41,8 +41,14 @@ class GroupController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Group $group)
+    public function show(int $id)
     {
+        $group = Group::find($id);
+
+        if (! $group) {
+            return response()->json(['message' => 'Group not found'], 404);
+        }
+
         return new GroupResource($group);
     }
 

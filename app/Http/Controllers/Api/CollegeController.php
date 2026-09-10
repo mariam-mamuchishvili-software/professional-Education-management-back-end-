@@ -41,8 +41,14 @@ class CollegeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(College $college)
+    public function show(int $id)
     {
+        $college = College::find($id);
+
+        if (! $college) {
+            return response()->json(['message' => 'College not found'], 404);
+        }
+
         return new CollegeResource($college);
     }
 

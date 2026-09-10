@@ -30,6 +30,14 @@ class TeacherControllerTest extends TestCase
             ->assertJsonPath('data.id', $teacher->id);
     }
 
+    public function test_show_returns_404_for_nonexistent_teacher(): void
+    {
+        $response = $this->getJson('/api/teachers/999999');
+
+        $response->assertStatus(404)
+            ->assertJson(['message' => 'Teacher not found']);
+    }
+
     public function test_store_creates_a_teacher(): void
     {
         $data = [
