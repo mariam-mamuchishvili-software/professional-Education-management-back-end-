@@ -20,7 +20,7 @@ class ProfessionController extends Controller
         $limit = max((int) $request->query('limit', 30), 1);
 
         return ProfessionResource::collection(
-            Profession::skip($skip)->take($limit)->get()
+            Profession::with(['modules', 'groups'])->skip($skip)->take($limit)->get()
         )->additional([
             'total' => Profession::count(),
             'skip' => $skip,
@@ -43,7 +43,7 @@ class ProfessionController extends Controller
      */
     public function show(int $id)
     {
-        $profession = Profession::find($id);
+        $profession = Profession::with(['modules', 'groups'])->find($id);
 
         if (! $profession) {
             return response()->json(['message' => 'Profession not found'], 404);

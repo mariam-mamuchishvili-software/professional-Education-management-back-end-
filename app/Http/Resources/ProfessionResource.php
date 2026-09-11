@@ -23,6 +23,8 @@ class ProfessionResource extends JsonResource
             'qualification' => $this->qualification,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'modules' => ModuleResource::collection($this->whenLoaded('modules')),
+            'groups' => GroupResource::collection($this->whenLoaded('groups')),
         ];
     }
 }

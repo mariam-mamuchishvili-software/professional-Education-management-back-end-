@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\College;
+use App\Models\Teacher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -28,6 +29,19 @@ class CollegeControllerTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonPath('data.id', $college->id);
+    }
+
+    public function test_show_returns_college_with_teachers(): void
+    {
+        $college = College::factory()->create();
+        $teachers = Teacher::factory(2)->create();
+        $college->teachers()->attach($teachers);
+
+        $response = $this->getJson("/api/colleges/{$college->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(2, 'data.teachers')
+            ->assertJsonPath('data.teachers.0.id', $teachers[0]->id);
     }
 
     public function test_show_returns_404_for_nonexistent_college(): void

@@ -23,6 +23,7 @@ class StudentResource extends JsonResource
             'birth_date' => $this->birth_date,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'groups' => GroupResource::collection($this->whenLoaded('groups')),
         ];
     }
 }

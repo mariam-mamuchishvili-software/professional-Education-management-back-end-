@@ -23,6 +23,8 @@ class ModuleResource extends JsonResource
             'credits' => $this->credits,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'teachers' => TeacherResource::collection($this->whenLoaded('teachers')),
+            'professions' => ProfessionResource::collection($this->whenLoaded('professions')),
         ];
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Group;
+use App\Models\Module;
 use App\Models\Profession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -28,6 +30,22 @@ class ProfessionControllerTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonPath('data.id', $profession->id);
+    }
+
+    public function test_show_returns_profession_with_modules_and_groups(): void
+    {
+        $profession = Profession::factory()->create();
+        $module = Module::factory()->create();
+        $profession->modules()->attach($module);
+        $group = Group::factory()->create(['profession_id' => $profession->id]);
+
+        $response = $this->getJson("/api/professions/{$profession->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1, 'data.modules')
+            ->assertJsonPath('data.modules.0.id', $module->id)
+            ->assertJsonCount(1, 'data.groups')
+            ->assertJsonPath('data.groups.0.id', $group->id);
     }
 
     public function test_show_returns_404_for_nonexistent_profession(): void

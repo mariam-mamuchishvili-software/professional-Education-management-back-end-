@@ -20,7 +20,7 @@ class StudentController extends Controller
         $limit = max((int) $request->query('limit', 30), 1);
 
         return StudentResource::collection(
-            Student::skip($skip)->take($limit)->get()
+            Student::with('groups')->skip($skip)->take($limit)->get()
         )->additional([
             'total' => Student::count(),
             'skip' => $skip,
@@ -43,7 +43,7 @@ class StudentController extends Controller
      */
     public function show(int $id)
     {
-        $student = Student::find($id);
+        $student = Student::with('groups')->find($id);
 
         if (! $student) {
             return response()->json(['message' => 'Student not found'], 404);

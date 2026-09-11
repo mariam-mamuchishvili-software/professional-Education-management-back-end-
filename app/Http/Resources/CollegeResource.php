@@ -23,6 +23,7 @@ class CollegeResource extends JsonResource
             'website' => $this->website,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'teachers' => TeacherResource::collection($this->whenLoaded('teachers')),
         ];
     }
 }

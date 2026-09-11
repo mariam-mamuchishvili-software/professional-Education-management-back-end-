@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Group;
 use App\Models\Student;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -28,6 +29,19 @@ class StudentControllerTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonPath('data.id', $student->id);
+    }
+
+    public function test_show_returns_student_with_groups(): void
+    {
+        $student = Student::factory()->create();
+        $groups = Group::factory(2)->create();
+        $student->groups()->attach($groups);
+
+        $response = $this->getJson("/api/students/{$student->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(2, 'data.groups')
+            ->assertJsonPath('data.groups.0.id', $groups[0]->id);
     }
 
     public function test_show_returns_404_for_nonexistent_student(): void

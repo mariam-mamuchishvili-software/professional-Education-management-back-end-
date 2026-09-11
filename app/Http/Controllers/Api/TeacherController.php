@@ -20,7 +20,7 @@ class TeacherController extends Controller
         $limit = max((int) $request->query('limit', 30), 1);
 
         return TeacherResource::collection(
-            Teacher::skip($skip)->take($limit)->get()
+            Teacher::with(['colleges', 'modules'])->skip($skip)->take($limit)->get()
         )->additional([
             'total' => Teacher::count(),
             'skip' => $skip,
@@ -43,7 +43,7 @@ class TeacherController extends Controller
      */
     public function show(int $id)
     {
-        $teacher = Teacher::find($id);
+        $teacher = Teacher::with(['colleges', 'modules'])->find($id);
 
         if (! $teacher) {
             return response()->json(['message' => 'Teacher not found'], 404);

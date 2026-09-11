@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Module;
+use App\Models\Profession;
+use App\Models\Teacher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -28,6 +30,23 @@ class ModuleControllerTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonPath('data.id', $module->id);
+    }
+
+    public function test_show_returns_module_with_teachers_and_professions(): void
+    {
+        $module = Module::factory()->create();
+        $teacher = Teacher::factory()->create();
+        $profession = Profession::factory()->create();
+        $module->teachers()->attach($teacher);
+        $module->professions()->attach($profession);
+
+        $response = $this->getJson("/api/modules/{$module->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1, 'data.teachers')
+            ->assertJsonPath('data.teachers.0.id', $teacher->id)
+            ->assertJsonCount(1, 'data.professions')
+            ->assertJsonPath('data.professions.0.id', $profession->id);
     }
 
     public function test_show_returns_404_for_nonexistent_module(): void

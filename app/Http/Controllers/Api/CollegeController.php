@@ -20,7 +20,7 @@ class CollegeController extends Controller
         $limit = max((int) $request->query('limit', 30), 1);
 
         return CollegeResource::collection(
-            College::skip($skip)->take($limit)->get()
+            College::with('teachers')->skip($skip)->take($limit)->get()
         )->additional([
             'total' => College::count(),
             'skip' => $skip,
@@ -43,7 +43,7 @@ class CollegeController extends Controller
      */
     public function show(int $id)
     {
-        $college = College::find($id);
+        $college = College::with('teachers')->find($id);
 
         if (! $college) {
             return response()->json(['message' => 'College not found'], 404);

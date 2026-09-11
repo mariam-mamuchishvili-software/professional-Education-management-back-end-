@@ -23,6 +23,8 @@ class GroupResource extends JsonResource
             'study_shift' => $this->study_shift,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'profession' => new ProfessionResource($this->whenLoaded('profession')),
+            'students' => StudentResource::collection($this->whenLoaded('students')),
         ];
     }
 }
