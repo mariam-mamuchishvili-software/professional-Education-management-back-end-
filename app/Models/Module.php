@@ -26,4 +26,9 @@ class Module extends Model
     {
         return $this->belongsToMany(Profession::class);
     }
+
+    public function students()
+    {
+        return $this->belongsToMany(Student::class);
+    }
 }

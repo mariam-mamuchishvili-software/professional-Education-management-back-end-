@@ -21,4 +21,9 @@ class Student extends Model
     {
         return $this->belongsToMany(Group::class);
     }
+
+    public function modules()
+    {
+        return $this->belongsToMany(Module::class);
+    }
 }

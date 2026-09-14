@@ -32,18 +32,65 @@ class GroupControllerTest extends TestCase
             ->assertJsonPath('data.id', $group->id);
     }
 
-    public function test_show_returns_group_with_profession_and_students(): void
+    public function test_show_does_not_include_relationships_by_default(): void
+    {
+        $group = Group::factory()->create();
+        $group->students()->attach(Student::factory(2)->create());
+
+        $response = $this->getJson("/api/groups/{$group->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonMissingPath('data.profession')
+            ->assertJsonMissingPath('data.students');
+    }
+
+    public function test_show_returns_group_with_only_the_requested_relation(): void
+    {
+        $group = Group::factory()->create();
+        $group->students()->attach(Student::factory(2)->create());
+
+        $response = $this->getJson("/api/groups/{$group->id}?include=profession");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.profession.id', $group->profession_id)
+            ->assertJsonMissingPath('data.students');
+    }
+
+    public function test_show_returns_group_with_profession_and_students_when_included(): void
     {
         $group = Group::factory()->create();
         $students = Student::factory(2)->create();
         $group->students()->attach($students);
 
-        $response = $this->getJson("/api/groups/{$group->id}");
+        $response = $this->getJson("/api/groups/{$group->id}?include=profession,students");
 
         $response->assertStatus(200)
             ->assertJsonPath('data.profession.id', $group->profession_id)
             ->assertJsonCount(2, 'data.students')
             ->assertJsonPath('data.students.0.id', $students[0]->id);
+    }
+
+    public function test_index_returns_groups_with_profession_and_students_when_included(): void
+    {
+        $group = Group::factory()->create();
+        $group->students()->attach(Student::factory(2)->create());
+
+        $response = $this->getJson('/api/groups?include=profession,students');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.0.profession.id', $group->profession_id)
+            ->assertJsonCount(2, 'data.0.students');
+    }
+
+    public function test_show_ignores_invalid_include_value(): void
+    {
+        $group = Group::factory()->create();
+
+        $response = $this->getJson("/api/groups/{$group->id}?include=invalidRelation");
+
+        $response->assertStatus(200)
+            ->assertJsonMissingPath('data.profession')
+            ->assertJsonMissingPath('data.students');
     }
 
     public function test_show_returns_404_for_nonexistent_group(): void

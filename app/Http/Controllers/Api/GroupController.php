@@ -20,7 +20,7 @@ class GroupController extends Controller
         $limit = max((int) $request->query('limit', 30), 1);
 
         return GroupResource::collection(
-            Group::with(['profession', 'students'])->skip($skip)->take($limit)->get()
+            Group::with($this->resolveIncludes($request, ['profession', 'students']))->skip($skip)->take($limit)->get()
         )->additional([
             'total' => Group::count(),
             'skip' => $skip,
@@ -41,9 +41,9 @@ class GroupController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(int $id)
+    public function show(Request $request, int $id)
     {
-        $group = Group::with(['profession', 'students'])->find($id);
+        $group = Group::with($this->resolveIncludes($request, ['profession', 'students']))->find($id);
 
         if (! $group) {
             return response()->json(['message' => 'Group not found'], 404);

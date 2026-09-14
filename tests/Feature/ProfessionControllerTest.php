@@ -32,20 +32,73 @@ class ProfessionControllerTest extends TestCase
             ->assertJsonPath('data.id', $profession->id);
     }
 
-    public function test_show_returns_profession_with_modules_and_groups(): void
+    public function test_show_does_not_include_relationships_by_default(): void
+    {
+        $profession = Profession::factory()->create();
+        $profession->modules()->attach(Module::factory()->create());
+        Group::factory()->create(['profession_id' => $profession->id]);
+
+        $response = $this->getJson("/api/professions/{$profession->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonMissingPath('data.modules')
+            ->assertJsonMissingPath('data.groups');
+    }
+
+    public function test_show_returns_profession_with_only_the_requested_relation(): void
+    {
+        $profession = Profession::factory()->create();
+        $module = Module::factory()->create();
+        $profession->modules()->attach($module);
+        Group::factory()->create(['profession_id' => $profession->id]);
+
+        $response = $this->getJson("/api/professions/{$profession->id}?include=modules");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1, 'data.modules')
+            ->assertJsonPath('data.modules.0.id', $module->id)
+            ->assertJsonMissingPath('data.groups');
+    }
+
+    public function test_show_returns_profession_with_modules_and_groups_when_included(): void
     {
         $profession = Profession::factory()->create();
         $module = Module::factory()->create();
         $profession->modules()->attach($module);
         $group = Group::factory()->create(['profession_id' => $profession->id]);
 
-        $response = $this->getJson("/api/professions/{$profession->id}");
+        $response = $this->getJson("/api/professions/{$profession->id}?include=modules,groups");
 
         $response->assertStatus(200)
             ->assertJsonCount(1, 'data.modules')
             ->assertJsonPath('data.modules.0.id', $module->id)
             ->assertJsonCount(1, 'data.groups')
             ->assertJsonPath('data.groups.0.id', $group->id);
+    }
+
+    public function test_index_returns_professions_with_modules_and_groups_when_included(): void
+    {
+        $profession = Profession::factory()->create();
+        $profession->modules()->attach(Module::factory()->create());
+        Group::factory()->create(['profession_id' => $profession->id]);
+
+        $response = $this->getJson('/api/professions?include=modules,groups');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1, 'data.0.modules')
+            ->assertJsonCount(1, 'data.0.groups');
+    }
+
+    public function test_show_ignores_invalid_include_value(): void
+    {
+        $profession = Profession::factory()->create();
+        $profession->modules()->attach(Module::factory()->create());
+
+        $response = $this->getJson("/api/professions/{$profession->id}?include=invalidRelation");
+
+        $response->assertStatus(200)
+            ->assertJsonMissingPath('data.modules')
+            ->assertJsonMissingPath('data.groups');
     }
 
     public function test_show_returns_404_for_nonexistent_profession(): void

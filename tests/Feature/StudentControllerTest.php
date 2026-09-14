@@ -31,17 +31,51 @@ class StudentControllerTest extends TestCase
             ->assertJsonPath('data.id', $student->id);
     }
 
-    public function test_show_returns_student_with_groups(): void
+    public function test_show_does_not_include_groups_by_default(): void
+    {
+        $student = Student::factory()->create();
+        $student->groups()->attach(Group::factory(2)->create());
+
+        $response = $this->getJson("/api/students/{$student->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonMissingPath('data.groups');
+    }
+
+    public function test_show_returns_student_with_groups_when_included(): void
     {
         $student = Student::factory()->create();
         $groups = Group::factory(2)->create();
         $student->groups()->attach($groups);
 
-        $response = $this->getJson("/api/students/{$student->id}");
+        $response = $this->getJson("/api/students/{$student->id}?include=groups");
 
         $response->assertStatus(200)
             ->assertJsonCount(2, 'data.groups')
             ->assertJsonPath('data.groups.0.id', $groups[0]->id);
+    }
+
+    public function test_index_returns_students_with_groups_when_included(): void
+    {
+        $student = Student::factory()->create();
+        $groups = Group::factory(2)->create();
+        $student->groups()->attach($groups);
+
+        $response = $this->getJson('/api/students?include=groups');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(2, 'data.0.groups');
+    }
+
+    public function test_show_ignores_invalid_include_value(): void
+    {
+        $student = Student::factory()->create();
+        $student->groups()->attach(Group::factory()->create());
+
+        $response = $this->getJson("/api/students/{$student->id}?include=invalidRelation");
+
+        $response->assertStatus(200)
+            ->assertJsonMissingPath('data.groups');
     }
 
     public function test_show_returns_404_for_nonexistent_student(): void

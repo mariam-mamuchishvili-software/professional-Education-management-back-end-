@@ -31,17 +31,51 @@ class CollegeControllerTest extends TestCase
             ->assertJsonPath('data.id', $college->id);
     }
 
-    public function test_show_returns_college_with_teachers(): void
+    public function test_show_does_not_include_teachers_by_default(): void
+    {
+        $college = College::factory()->create();
+        $college->teachers()->attach(Teacher::factory(2)->create());
+
+        $response = $this->getJson("/api/colleges/{$college->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonMissingPath('data.teachers');
+    }
+
+    public function test_show_returns_college_with_teachers_when_included(): void
     {
         $college = College::factory()->create();
         $teachers = Teacher::factory(2)->create();
         $college->teachers()->attach($teachers);
 
-        $response = $this->getJson("/api/colleges/{$college->id}");
+        $response = $this->getJson("/api/colleges/{$college->id}?include=teachers");
 
         $response->assertStatus(200)
             ->assertJsonCount(2, 'data.teachers')
             ->assertJsonPath('data.teachers.0.id', $teachers[0]->id);
+    }
+
+    public function test_index_returns_colleges_with_teachers_when_included(): void
+    {
+        $college = College::factory()->create();
+        $teachers = Teacher::factory(2)->create();
+        $college->teachers()->attach($teachers);
+
+        $response = $this->getJson('/api/colleges?include=teachers');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(2, 'data.0.teachers');
+    }
+
+    public function test_show_ignores_invalid_include_value(): void
+    {
+        $college = College::factory()->create();
+        $college->teachers()->attach(Teacher::factory()->create());
+
+        $response = $this->getJson("/api/colleges/{$college->id}?include=invalidRelation");
+
+        $response->assertStatus(200)
+            ->assertJsonMissingPath('data.teachers');
     }
 
     public function test_show_returns_404_for_nonexistent_college(): void

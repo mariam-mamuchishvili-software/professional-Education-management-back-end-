@@ -25,6 +25,7 @@ class ModuleResource extends JsonResource
             'updated_at' => $this->updated_at,
             'teachers' => TeacherResource::collection($this->whenLoaded('teachers')),
             'professions' => ProfessionResource::collection($this->whenLoaded('professions')),
+            'students' => StudentResource::collection($this->whenLoaded('students')),
         ];
     }
 }

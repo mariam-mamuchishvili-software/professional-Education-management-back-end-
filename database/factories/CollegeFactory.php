@@ -24,5 +24,3 @@ class CollegeFactory extends Factory
         ];
     }
 }
-
-

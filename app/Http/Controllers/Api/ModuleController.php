@@ -20,7 +20,7 @@ class ModuleController extends Controller
         $limit = max((int) $request->query('limit', 30), 1);
 
         return ModuleResource::collection(
-            Module::with(['teachers', 'professions'])->skip($skip)->take($limit)->get()
+            Module::with($this->resolveIncludes($request, ['teachers', 'professions']))->skip($skip)->take($limit)->get()
         )->additional([
             'total' => Module::count(),
             'skip' => $skip,
@@ -41,9 +41,9 @@ class ModuleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(int $id)
+    public function show(Request $request, int $id)
     {
-        $module = Module::with(['teachers', 'professions'])->find($id);
+        $module = Module::with($this->resolveIncludes($request, ['teachers', 'professions']))->find($id);
 
         if (! $module) {
             return response()->json(['message' => 'Module not found'], 404);

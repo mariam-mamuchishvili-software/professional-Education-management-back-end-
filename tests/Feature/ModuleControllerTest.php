@@ -32,7 +32,35 @@ class ModuleControllerTest extends TestCase
             ->assertJsonPath('data.id', $module->id);
     }
 
-    public function test_show_returns_module_with_teachers_and_professions(): void
+    public function test_show_does_not_include_relationships_by_default(): void
+    {
+        $module = Module::factory()->create();
+        $module->teachers()->attach(Teacher::factory()->create());
+        $module->professions()->attach(Profession::factory()->create());
+
+        $response = $this->getJson("/api/modules/{$module->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonMissingPath('data.teachers')
+            ->assertJsonMissingPath('data.professions');
+    }
+
+    public function test_show_returns_module_with_only_the_requested_relation(): void
+    {
+        $module = Module::factory()->create();
+        $teacher = Teacher::factory()->create();
+        $module->teachers()->attach($teacher);
+        $module->professions()->attach(Profession::factory()->create());
+
+        $response = $this->getJson("/api/modules/{$module->id}?include=teachers");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1, 'data.teachers')
+            ->assertJsonPath('data.teachers.0.id', $teacher->id)
+            ->assertJsonMissingPath('data.professions');
+    }
+
+    public function test_show_returns_module_with_teachers_and_professions_when_included(): void
     {
         $module = Module::factory()->create();
         $teacher = Teacher::factory()->create();
@@ -40,13 +68,38 @@ class ModuleControllerTest extends TestCase
         $module->teachers()->attach($teacher);
         $module->professions()->attach($profession);
 
-        $response = $this->getJson("/api/modules/{$module->id}");
+        $response = $this->getJson("/api/modules/{$module->id}?include=teachers,professions");
 
         $response->assertStatus(200)
             ->assertJsonCount(1, 'data.teachers')
             ->assertJsonPath('data.teachers.0.id', $teacher->id)
             ->assertJsonCount(1, 'data.professions')
             ->assertJsonPath('data.professions.0.id', $profession->id);
+    }
+
+    public function test_index_returns_modules_with_teachers_and_professions_when_included(): void
+    {
+        $module = Module::factory()->create();
+        $module->teachers()->attach(Teacher::factory()->create());
+        $module->professions()->attach(Profession::factory()->create());
+
+        $response = $this->getJson('/api/modules?include=teachers,professions');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1, 'data.0.teachers')
+            ->assertJsonCount(1, 'data.0.professions');
+    }
+
+    public function test_show_ignores_invalid_include_value(): void
+    {
+        $module = Module::factory()->create();
+        $module->teachers()->attach(Teacher::factory()->create());
+
+        $response = $this->getJson("/api/modules/{$module->id}?include=invalidRelation");
+
+        $response->assertStatus(200)
+            ->assertJsonMissingPath('data.teachers')
+            ->assertJsonMissingPath('data.professions');
     }
 
     public function test_show_returns_404_for_nonexistent_module(): void
