@@ -1,0 +1,122 @@
+<?php
+
+namespace Tests\Feature\Filament;
+
+use App\Filament\Resources\Students\Pages\CreateStudent;
+use App\Filament\Resources\Students\Pages\EditStudent;
+use App\Filament\Resources\Students\Pages\ListStudents;
+use App\Models\Group;
+use App\Models\Module;
+use App\Models\Student;
+use App\Models\User;
+use Filament\Actions\DeleteAction;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
+use Tests\TestCase;
+
+class StudentResourceTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->actingAs(User::factory()->create());
+    }
+
+    public function test_list_page_displays_students(): void
+    {
+        $students = Student::factory()->count(3)->create();
+
+        Livewire::test(ListStudents::class)
+            ->assertCanSeeTableRecords($students);
+    }
+
+    public function test_can_create_a_student_with_groups_and_modules(): void
+    {
+        $groups = Group::factory()->count(2)->create();
+        $modules = Module::factory()->count(2)->create();
+
+        Livewire::test(CreateStudent::class)
+            ->fillForm([
+                'first_name' => 'Ana',
+                'last_name' => 'Lomidze',
+                'email' => 'ana@example.com',
+                'phone' => '+995 555 777 888',
+                'birth_date' => '2005-04-12',
+                'groups' => $groups->pluck('id')->all(),
+                'modules' => $modules->pluck('id')->all(),
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $student = Student::where('email', 'ana@example.com')->firstOrFail();
+
+        $this->assertCount(2, $student->groups);
+        $this->assertCount(2, $student->modules);
+    }
+
+    public function test_create_requires_first_name_last_name_email_phone_and_birth_date(): void
+    {
+        Livewire::test(CreateStudent::class)
+            ->fillForm([
+                'first_name' => '',
+                'last_name' => '',
+                'email' => '',
+                'phone' => '',
+                'birth_date' => '',
+            ])
+            ->call('create')
+            ->assertHasFormErrors([
+                'first_name' => 'required',
+                'last_name' => 'required',
+                'email' => 'required',
+                'phone' => 'required',
+                'birth_date' => 'required',
+            ]);
+    }
+
+    public function test_create_rejects_a_duplicate_email(): void
+    {
+        Student::factory()->create(['email' => 'existing@example.com']);
+
+        Livewire::test(CreateStudent::class)
+            ->fillForm([
+                'first_name' => 'Levan',
+                'last_name' => 'Tsiklauri',
+                'email' => 'existing@example.com',
+                'phone' => '+995 555 222 333',
+                'birth_date' => '2004-01-01',
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['email' => 'unique']);
+    }
+
+    public function test_can_update_a_student(): void
+    {
+        $student = Student::factory()->create();
+
+        Livewire::test(EditStudent::class, ['record' => $student->getRouteKey()])
+            ->fillForm([
+                'first_name' => 'Updated',
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('students', [
+            'id' => $student->id,
+            'first_name' => 'Updated',
+        ]);
+    }
+
+    public function test_can_delete_a_student(): void
+    {
+        $student = Student::factory()->create();
+
+        Livewire::test(EditStudent::class, ['record' => $student->getRouteKey()])
+            ->callAction(DeleteAction::class);
+
+        $this->assertModelMissing($student);
+    }
+}
