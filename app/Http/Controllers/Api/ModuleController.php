@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreModuleRequest;
 use App\Http\Requests\UpdateModuleRequest;
 use App\Http\Resources\ModuleResource;
+use App\Http\Resources\ProfessionResource;
+use App\Http\Resources\TeacherResource;
 use App\Models\Module;
 use Illuminate\Http\Request;
 
@@ -20,7 +22,7 @@ class ModuleController extends Controller
         $limit = max((int) $request->query('limit', 30), 1);
 
         return ModuleResource::collection(
-            Module::with($this->resolveIncludes($request, ['teachers', 'professions']))->skip($skip)->take($limit)->get()
+            Module::with($this->resolveIncludes($request, $this->allowedIncludes()))->skip($skip)->take($limit)->get()
         )->additional([
             'total' => Module::count(),
             'skip' => $skip,
@@ -43,7 +45,7 @@ class ModuleController extends Controller
      */
     public function show(Request $request, int $id)
     {
-        $module = Module::with($this->resolveIncludes($request, ['teachers', 'professions']))->find($id);
+        $module = Module::with($this->resolveIncludes($request, $this->allowedIncludes()))->find($id);
 
         if (! $module) {
             return response()->json(['message' => 'Module not found'], 404);
@@ -72,5 +74,43 @@ class ModuleController extends Controller
         return response()->json([
             'message' => 'Module deleted successfully',
         ]);
+    }
+
+    /**
+     * Display the teachers who teach the specified module.
+     */
+    public function teachers(Module $module)
+    {
+        return TeacherResource::collection($module->teachers);
+    }
+
+    /**
+     * Display the professions the specified module belongs to.
+     */
+    public function professions(Module $module)
+    {
+        return ProfessionResource::collection($module->professions);
+    }
+
+    /**
+     * Allowlist tree of relation paths that may be eager loaded via ?include=, up to 3 levels deep.
+     *
+     * @return array<string, array<mixed>>
+     */
+    private function allowedIncludes(): array
+    {
+        return [
+            'teachers' => [
+                'colleges' => [],
+            ],
+            'professions' => [
+                'groups' => [
+                    'students' => [],
+                ],
+            ],
+            'students' => [
+                'groups' => [],
+            ],
+        ];
     }
 }

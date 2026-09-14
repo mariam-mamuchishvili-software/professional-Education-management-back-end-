@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Group;
+use App\Models\Module;
 use App\Models\Student;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -65,6 +66,48 @@ class StudentControllerTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonCount(2, 'data.0.groups');
+    }
+
+    public function test_show_returns_student_with_nested_group_profession_when_included(): void
+    {
+        $student = Student::factory()->create();
+        $group = Group::factory()->create();
+        $student->groups()->attach($group);
+
+        $response = $this->getJson("/api/students/{$student->id}?include=groups.profession");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.groups.0.profession.id', $group->profession_id);
+    }
+
+    public function test_show_returns_student_with_three_level_nested_include(): void
+    {
+        $student = Student::factory()->create();
+        $group = Group::factory()->create();
+        $student->groups()->attach($group);
+        $module = Module::factory()->create();
+        $group->profession->modules()->attach($module);
+
+        $response = $this->getJson("/api/students/{$student->id}?include=groups.profession.modules");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1, 'data.groups.0.profession.modules')
+            ->assertJsonPath('data.groups.0.profession.modules.0.id', $module->id);
+    }
+
+    public function test_show_ignores_include_beyond_three_levels(): void
+    {
+        $student = Student::factory()->create();
+        $group = Group::factory()->create();
+        $student->groups()->attach($group);
+        $module = Module::factory()->create();
+        $group->profession->modules()->attach($module);
+
+        $response = $this->getJson("/api/students/{$student->id}?include=groups.profession.modules.teachers");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1, 'data.groups.0.profession.modules')
+            ->assertJsonMissingPath('data.groups.0.profession.modules.0.teachers');
     }
 
     public function test_show_ignores_invalid_include_value(): void

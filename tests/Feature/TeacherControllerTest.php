@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\College;
+use App\Models\Group;
 use App\Models\Module;
+use App\Models\Profession;
 use App\Models\Teacher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -88,6 +90,39 @@ class TeacherControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonCount(1, 'data.0.colleges')
             ->assertJsonCount(1, 'data.0.modules');
+    }
+
+    public function test_show_returns_teacher_with_three_level_nested_include(): void
+    {
+        $teacher = Teacher::factory()->create();
+        $module = Module::factory()->create();
+        $teacher->modules()->attach($module);
+        $profession = Profession::factory()->create();
+        $module->professions()->attach($profession);
+        $group = Group::factory()->create(['profession_id' => $profession->id]);
+
+        $response = $this->getJson("/api/teachers/{$teacher->id}?include=modules.professions.groups");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1, 'data.modules.0.professions')
+            ->assertJsonCount(1, 'data.modules.0.professions.0.groups')
+            ->assertJsonPath('data.modules.0.professions.0.groups.0.id', $group->id);
+    }
+
+    public function test_show_ignores_include_beyond_three_levels(): void
+    {
+        $teacher = Teacher::factory()->create();
+        $module = Module::factory()->create();
+        $teacher->modules()->attach($module);
+        $profession = Profession::factory()->create();
+        $module->professions()->attach($profession);
+        Group::factory()->create(['profession_id' => $profession->id]);
+
+        $response = $this->getJson("/api/teachers/{$teacher->id}?include=modules.professions.groups.students");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1, 'data.modules.0.professions.0.groups')
+            ->assertJsonMissingPath('data.modules.0.professions.0.groups.0.students');
     }
 
     public function test_show_ignores_invalid_include_value(): void

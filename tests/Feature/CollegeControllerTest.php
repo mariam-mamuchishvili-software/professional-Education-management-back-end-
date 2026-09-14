@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\College;
+use App\Models\Module;
+use App\Models\Student;
 use App\Models\Teacher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -65,6 +67,41 @@ class CollegeControllerTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonCount(2, 'data.0.teachers');
+    }
+
+    public function test_show_returns_college_with_three_level_nested_include(): void
+    {
+        $college = College::factory()->create();
+        $teacher = Teacher::factory()->create();
+        $college->teachers()->attach($teacher);
+        $module = Module::factory()->create();
+        $teacher->modules()->attach($module);
+        $student = Student::factory()->create();
+        $module->students()->attach($student);
+
+        $response = $this->getJson("/api/colleges/{$college->id}?include=teachers.modules.students");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1, 'data.teachers.0.modules')
+            ->assertJsonCount(1, 'data.teachers.0.modules.0.students')
+            ->assertJsonPath('data.teachers.0.modules.0.students.0.id', $student->id);
+    }
+
+    public function test_show_ignores_include_beyond_three_levels(): void
+    {
+        $college = College::factory()->create();
+        $teacher = Teacher::factory()->create();
+        $college->teachers()->attach($teacher);
+        $module = Module::factory()->create();
+        $teacher->modules()->attach($module);
+        $student = Student::factory()->create();
+        $module->students()->attach($student);
+
+        $response = $this->getJson("/api/colleges/{$college->id}?include=teachers.modules.students.groups");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1, 'data.teachers.0.modules.0.students')
+            ->assertJsonMissingPath('data.teachers.0.modules.0.students.0.groups');
     }
 
     public function test_show_ignores_invalid_include_value(): void

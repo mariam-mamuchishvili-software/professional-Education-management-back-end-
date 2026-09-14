@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
         $this->attachCyclically($teachers, $modules, 'modules');
         $this->attachCyclically($modules, $professions, 'professions');
         $this->attachCyclically($students, $groups, 'groups');
+        $this->attachCyclically($students, $modules, 'modules');
     }
 
     /**

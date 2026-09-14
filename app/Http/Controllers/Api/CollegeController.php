@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCollegeRequest;
 use App\Http\Requests\UpdateCollegeRequest;
 use App\Http\Resources\CollegeResource;
+use App\Http\Resources\TeacherResource;
 use App\Models\College;
+use App\Models\Teacher;
 use Illuminate\Http\Request;
 
 class CollegeController extends Controller
@@ -20,7 +22,7 @@ class CollegeController extends Controller
         $limit = max((int) $request->query('limit', 30), 1);
 
         return CollegeResource::collection(
-            College::with($this->resolveIncludes($request, ['teachers']))->skip($skip)->take($limit)->get()
+            College::with($this->resolveIncludes($request, $this->allowedIncludes()))->skip($skip)->take($limit)->get()
         )->additional([
             'total' => College::count(),
             'skip' => $skip,
@@ -43,7 +45,7 @@ class CollegeController extends Controller
      */
     public function show(Request $request, int $id)
     {
-        $college = College::with($this->resolveIncludes($request, ['teachers']))->find($id);
+        $college = College::with($this->resolveIncludes($request, $this->allowedIncludes()))->find($id);
 
         if (! $college) {
             return response()->json(['message' => 'College not found'], 404);
@@ -72,5 +74,56 @@ class CollegeController extends Controller
         return response()->json([
             'message' => 'College deleted successfully',
         ]);
+    }
+
+    /**
+     * Display the teachers belonging to the specified college.
+     */
+    public function teachers(College $college)
+    {
+        return TeacherResource::collection($college->teachers);
+    }
+
+    /**
+     * Attach a teacher to the specified college.
+     */
+    public function attachTeacher(Request $request, College $college)
+    {
+        $validated = $request->validate([
+            'teacher_id' => ['required', 'integer', 'exists:teachers,id'],
+        ]);
+
+        $college->teachers()->syncWithoutDetaching([$validated['teacher_id']]);
+
+        return TeacherResource::collection($college->teachers);
+    }
+
+    /**
+     * Detach a teacher from the specified college.
+     */
+    public function detachTeacher(College $college, Teacher $teacher)
+    {
+        $college->teachers()->detach($teacher);
+
+        return response()->json([
+            'message' => 'Teacher detached from college successfully',
+        ]);
+    }
+
+    /**
+     * Allowlist tree of relation paths that may be eager loaded via ?include=, up to 3 levels deep.
+     *
+     * @return array<string, array<mixed>>
+     */
+    private function allowedIncludes(): array
+    {
+        return [
+            'teachers' => [
+                'modules' => [
+                    'students' => [],
+                    'professions' => [],
+                ],
+            ],
+        ];
     }
 }

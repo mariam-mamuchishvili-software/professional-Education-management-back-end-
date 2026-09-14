@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\College;
 use App\Models\Group;
 use App\Models\Module;
 use App\Models\Profession;
+use App\Models\Teacher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -87,6 +89,38 @@ class ProfessionControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonCount(1, 'data.0.modules')
             ->assertJsonCount(1, 'data.0.groups');
+    }
+
+    public function test_show_returns_profession_with_three_level_nested_include(): void
+    {
+        $profession = Profession::factory()->create();
+        $module = Module::factory()->create();
+        $profession->modules()->attach($module);
+        $teacher = Teacher::factory()->create();
+        $module->teachers()->attach($teacher);
+
+        $response = $this->getJson("/api/professions/{$profession->id}?include=modules.teachers.colleges");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1, 'data.modules.0.teachers')
+            ->assertJsonPath('data.modules.0.teachers.0.id', $teacher->id);
+    }
+
+    public function test_show_ignores_include_beyond_three_levels(): void
+    {
+        $profession = Profession::factory()->create();
+        $module = Module::factory()->create();
+        $profession->modules()->attach($module);
+        $teacher = Teacher::factory()->create();
+        $module->teachers()->attach($teacher);
+        $college = College::factory()->create();
+        $teacher->colleges()->attach($college);
+
+        $response = $this->getJson("/api/professions/{$profession->id}?include=modules.teachers.colleges.teachers");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1, 'data.modules.0.teachers.0.colleges')
+            ->assertJsonMissingPath('data.modules.0.teachers.0.colleges.0.teachers');
     }
 
     public function test_show_ignores_invalid_include_value(): void
