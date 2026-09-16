@@ -20,10 +20,14 @@ class CollegeController extends Controller
     {
         $skip = max((int) $request->query('skip', 0), 0);
         $limit = max((int) $request->query('limit', 30), 1);
+        $includes = $this->resolveIncludes($request, $this->allowedIncludes());
 
-        return CollegeResource::collection(
-            College::with($this->resolveIncludes($request, $this->allowedIncludes()))->skip($skip)->take($limit)->get()
-        )->additional([
+        $colleges = College::with($this->eagerLoadableIncludes($includes))
+            ->skip($skip)->take($limit)->get();
+
+        $colleges->each(fn (College $college) => $this->attachComputedIncludes($college, $includes));
+
+        return CollegeResource::collection($colleges)->additional([
             'total' => College::count(),
             'skip' => $skip,
             'limit' => $limit,
@@ -45,11 +49,15 @@ class CollegeController extends Controller
      */
     public function show(Request $request, int $id)
     {
-        $college = College::with($this->resolveIncludes($request, $this->allowedIncludes()))->find($id);
+        $includes = $this->resolveIncludes($request, $this->allowedIncludes());
+
+        $college = College::with($this->eagerLoadableIncludes($includes))->find($id);
 
         if (! $college) {
             return response()->json(['message' => 'College not found'], 404);
         }
+
+        $this->attachComputedIncludes($college, $includes);
 
         return new CollegeResource($college);
     }
@@ -111,7 +119,10 @@ class CollegeController extends Controller
     }
 
     /**
-     * Allowlist tree of relation paths that may be eager loaded via ?include=, up to 3 levels deep.
+     * Allowlist tree of relation paths that may be requested via ?include=, up to 3 levels deep.
+     * 'professions' and 'groups' aren't native Eloquent relations on College (see
+     * College::relatedProfessions()/relatedGroups()), so they're excluded from
+     * self::COMPUTED_INCLUDES before being passed to with() — see eagerLoadableIncludes().
      *
      * @return array<string, array<mixed>>
      */
@@ -124,6 +135,41 @@ class CollegeController extends Controller
                     'professions' => [],
                 ],
             ],
+            'professions' => [],
+            'groups' => [],
         ];
+    }
+
+    /**
+     * Include paths that aren't real Eloquent relations and must be resolved manually
+     * instead of being passed to with().
+     *
+     * @var array<int, string>
+     */
+    private const COMPUTED_INCLUDES = ['professions', 'groups'];
+
+    /**
+     * @param  array<int, string>  $includes
+     * @return array<int, string>
+     */
+    private function eagerLoadableIncludes(array $includes): array
+    {
+        return array_values(array_diff($includes, self::COMPUTED_INCLUDES));
+    }
+
+    /**
+     * Attach the computed (non-Eloquent-relation) includes requested for this college.
+     *
+     * @param  array<int, string>  $includes
+     */
+    private function attachComputedIncludes(College $college, array $includes): void
+    {
+        if (in_array('professions', $includes, true)) {
+            $college->setRelation('professions', $college->relatedProfessions()->get());
+        }
+
+        if (in_array('groups', $includes, true)) {
+            $college->setRelation('groups', $college->relatedGroups()->get());
+        }
     }
 }

@@ -24,6 +24,8 @@ class CollegeResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'teachers' => TeacherResource::collection($this->whenLoaded('teachers')),
+            'professions' => ProfessionResource::collection($this->whenLoaded('professions')),
+            'groups' => GroupResource::collection($this->whenLoaded('groups')),
         ];
     }
 }

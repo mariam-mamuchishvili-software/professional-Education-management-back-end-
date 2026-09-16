@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\CollegeController;
 use App\Http\Controllers\Api\GroupController;
 use App\Http\Controllers\Api\ModuleController;
 use App\Http\Controllers\Api\ProfessionController;
+use App\Http\Controllers\Api\StatisticsController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\TeacherController;
 use Illuminate\Http\Request;
@@ -12,6 +13,14 @@ use Illuminate\Support\Facades\Route;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+/*
+|--------------------------------------------------------------------------
+| Statistics
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/statistics', StatisticsController::class);
 
 /*
 |--------------------------------------------------------------------------
