@@ -9,6 +9,7 @@ use App\Http\Resources\CollegeResource;
 use App\Http\Resources\TeacherResource;
 use App\Models\College;
 use App\Models\Teacher;
+use App\Services\Cloudinary\CloudinaryUploader;
 use Illuminate\Http\Request;
 
 class CollegeController extends Controller
@@ -39,7 +40,13 @@ class CollegeController extends Controller
      */
     public function store(StoreCollegeRequest $request)
     {
-        $college = College::create($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('poster')) {
+            $data['poster'] = app(CloudinaryUploader::class)->upload($request->file('poster'), 'eduhub/colleges');
+        }
+
+        $college = College::create($data);
 
         return new CollegeResource($college);
     }
@@ -67,7 +74,13 @@ class CollegeController extends Controller
      */
     public function update(UpdateCollegeRequest $request, College $college)
     {
-        $college->update($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('poster')) {
+            $data['poster'] = app(CloudinaryUploader::class)->upload($request->file('poster'), 'eduhub/colleges');
+        }
+
+        $college->update($data);
 
         return new CollegeResource($college);
     }

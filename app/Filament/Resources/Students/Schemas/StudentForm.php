@@ -2,12 +2,15 @@
 
 namespace App\Filament\Resources\Students\Schemas;
 
+use App\Services\Cloudinary\CloudinaryUploader;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class StudentForm
 {
@@ -43,6 +46,22 @@ class StudentForm
                                     ->required()
                                     ->maxDate(now())
                                     ->displayFormat('Y-m-d'),
+
+                                FileUpload::make('image')
+                                    ->label('Profile Image')
+                                    ->image()
+                                    ->maxSize(4096)
+                                    ->imagePreviewHeight(150)
+                                    ->fetchFileInformation(false)
+                                    ->saveUploadedFileUsing(fn (TemporaryUploadedFile $file): string => app(CloudinaryUploader::class)
+                                        ->upload($file, 'eduhub/students'))
+                                    ->getUploadedFileUsing(fn (string $file): array => [
+                                        'name' => basename(parse_url($file, PHP_URL_PATH) ?: $file),
+                                        'size' => 0,
+                                        'type' => 'image',
+                                        'url' => $file,
+                                    ])
+                                    ->columnSpanFull(),
                             ]),
                     ]),
 

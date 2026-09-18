@@ -11,6 +11,8 @@ use App\Models\Student;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -23,6 +25,12 @@ class StudentResourceTest extends TestCase
         parent::setUp();
 
         $this->actingAs(User::factory()->create());
+
+        config([
+            'cloudinary.cloud_name' => 'demo-cloud',
+            'cloudinary.api_key' => 'demo-key',
+            'cloudinary.api_secret' => 'demo-secret',
+        ]);
     }
 
     public function test_list_page_displays_students(): void
@@ -118,5 +126,44 @@ class StudentResourceTest extends TestCase
             ->callAction(DeleteAction::class);
 
         $this->assertModelMissing($student);
+    }
+
+    public function test_can_create_a_student_with_a_profile_image_uploaded_to_cloudinary(): void
+    {
+        Http::fake([
+            'api.cloudinary.com/v1_1/demo-cloud/image/upload' => Http::response([
+                'secure_url' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/students/abc123.jpg',
+                'public_id' => 'eduhub/students/abc123',
+            ]),
+        ]);
+
+        Livewire::test(CreateStudent::class)
+            ->fillForm([
+                'first_name' => 'Ana',
+                'last_name' => 'Lomidze',
+                'email' => 'ana-image@example.com',
+                'phone' => '+995 555 777 888',
+                'birth_date' => '2005-04-12',
+                'image' => UploadedFile::fake()->image('student.jpg'),
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('students', [
+            'email' => 'ana-image@example.com',
+            'image' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/students/abc123.jpg',
+        ]);
+    }
+
+    public function test_edit_form_loads_existing_student_image_without_error(): void
+    {
+        $student = Student::factory()->create([
+            'image' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/students/original.jpg',
+        ]);
+
+        Livewire::test(EditStudent::class, ['record' => $student->getRouteKey()])
+            ->assertFormSet([
+                'image' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/students/original.jpg',
+            ]);
     }
 }

@@ -33,6 +33,7 @@ class UpdateCollegeRequest extends FormRequest
             ],
             'phone' => ['sometimes', 'string', 'max:20'],
             'website' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'poster' => ['sometimes', 'nullable', 'image', 'max:4096'],
         ];
     }
 }

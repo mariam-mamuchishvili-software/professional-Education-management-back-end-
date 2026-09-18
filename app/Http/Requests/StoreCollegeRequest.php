@@ -28,6 +28,7 @@ class StoreCollegeRequest extends FormRequest
             'email' => ['required', 'email', 'unique:colleges,email'],
             'phone' => ['required', 'string', 'max:20'],
             'website' => ['nullable', 'string', 'max:255'],
+            'poster' => ['nullable', 'image', 'max:4096'],
         ];
     }
 }

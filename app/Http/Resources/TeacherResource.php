@@ -21,6 +21,7 @@ class TeacherResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->phone,
             'specialization' => $this->specialization,
+            'image' => $this->image,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'colleges' => CollegeResource::collection($this->whenLoaded('colleges')),

@@ -9,6 +9,8 @@ use App\Models\College;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -21,6 +23,12 @@ class CollegeResourceTest extends TestCase
         parent::setUp();
 
         $this->actingAs(User::factory()->create());
+
+        config([
+            'cloudinary.cloud_name' => 'demo-cloud',
+            'cloudinary.api_key' => 'demo-key',
+            'cloudinary.api_secret' => 'demo-secret',
+        ]);
     }
 
     public function test_list_page_displays_colleges(): void
@@ -108,4 +116,53 @@ class CollegeResourceTest extends TestCase
 
         $this->assertModelMissing($college);
     }
+
+    public function test_can_create_a_college_with_a_poster_uploaded_to_cloudinary(): void
+    {
+        Http::fake([
+            'api.cloudinary.com/v1_1/demo-cloud/image/upload' => Http::response([
+                'secure_url' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/colleges/abc123.jpg',
+                'public_id' => 'eduhub/colleges/abc123',
+            ]),
+        ]);
+
+        Livewire::test(CreateCollege::class)
+            ->fillForm([
+                'name' => 'College With Poster',
+                'address' => 'Tbilisi, Georgia',
+                'email' => 'poster-college@example.com',
+                'phone' => '+995 555 123 456',
+                'poster' => UploadedFile::fake()->image('poster.jpg'),
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('colleges', [
+            'email' => 'poster-college@example.com',
+            'poster' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/colleges/abc123.jpg',
+        ]);
+    }
+
+    public function test_edit_form_loads_existing_poster_without_error(): void
+    {
+        $college = College::factory()->create([
+            'poster' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/colleges/original.jpg',
+        ]);
+
+        Livewire::test(EditCollege::class, ['record' => $college->getRouteKey()])
+            ->assertFormSet([
+                'poster' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/colleges/original.jpg',
+            ]);
+    }
+
+    // Replacing an existing single FileUpload's value is intentionally not
+    // exercised here via fillForm()/set(): Livewire's test harness appends the
+    // new TemporaryUploadedFile to the field's raw state alongside the already
+    // -hydrated value instead of replacing it (the real browser's Alpine.js
+    // swap-on-select behavior never runs in a headless Livewire test), so the
+    // saved value is unreliable in this harness regardless of the underlying
+    // upload/replace logic. That logic (ReplacesCloudinaryImageOnUpdate +
+    // CloudinaryUploader::delete) is covered end-to-end instead by
+    // CloudinaryImageUploadTest::test_college_update_with_new_poster_replaces_old_one_on_cloudinary,
+    // which exercises the same model code path via a real HTTP PUT request.
 }

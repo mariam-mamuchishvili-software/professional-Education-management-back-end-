@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Teachers\Schemas;
 
+use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -17,6 +18,11 @@ class TeacherInfolist
                     ->schema([
                         Grid::make(2)
                             ->schema([
+                                ImageEntry::make('image')
+                                    ->label('Photo')
+                                    ->circular()
+                                    ->columnSpanFull(),
+
                                 TextEntry::make('first_name'),
                                 TextEntry::make('last_name'),
 

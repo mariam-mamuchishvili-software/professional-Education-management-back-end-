@@ -21,6 +21,7 @@ class StudentResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->phone,
             'birth_date' => $this->birth_date,
+            'image' => $this->image,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'groups' => GroupResource::collection($this->whenLoaded('groups')),

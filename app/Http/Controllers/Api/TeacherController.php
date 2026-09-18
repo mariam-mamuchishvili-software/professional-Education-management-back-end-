@@ -10,6 +10,7 @@ use App\Http\Resources\ModuleResource;
 use App\Http\Resources\TeacherResource;
 use App\Models\Module;
 use App\Models\Teacher;
+use App\Services\Cloudinary\CloudinaryUploader;
 use Illuminate\Http\Request;
 
 class TeacherController extends Controller
@@ -36,7 +37,13 @@ class TeacherController extends Controller
      */
     public function store(StoreTeacherRequest $request)
     {
-        $teacher = Teacher::create($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            $data['image'] = app(CloudinaryUploader::class)->upload($request->file('image'), 'eduhub/teachers');
+        }
+
+        $teacher = Teacher::create($data);
 
         return new TeacherResource($teacher);
     }
@@ -60,7 +67,13 @@ class TeacherController extends Controller
      */
     public function update(UpdateTeacherRequest $request, Teacher $teacher)
     {
-        $teacher->update($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            $data['image'] = app(CloudinaryUploader::class)->upload($request->file('image'), 'eduhub/teachers');
+        }
+
+        $teacher->update($data);
 
         return new TeacherResource($teacher);
     }

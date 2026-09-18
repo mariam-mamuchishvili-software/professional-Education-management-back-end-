@@ -11,6 +11,8 @@ use App\Models\Teacher;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -23,6 +25,12 @@ class TeacherResourceTest extends TestCase
         parent::setUp();
 
         $this->actingAs(User::factory()->create());
+
+        config([
+            'cloudinary.cloud_name' => 'demo-cloud',
+            'cloudinary.api_key' => 'demo-key',
+            'cloudinary.api_secret' => 'demo-secret',
+        ]);
     }
 
     public function test_list_page_displays_teachers(): void
@@ -118,5 +126,44 @@ class TeacherResourceTest extends TestCase
             ->callAction(DeleteAction::class);
 
         $this->assertModelMissing($teacher);
+    }
+
+    public function test_can_create_a_teacher_with_a_profile_image_uploaded_to_cloudinary(): void
+    {
+        Http::fake([
+            'api.cloudinary.com/v1_1/demo-cloud/image/upload' => Http::response([
+                'secure_url' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/teachers/abc123.jpg',
+                'public_id' => 'eduhub/teachers/abc123',
+            ]),
+        ]);
+
+        Livewire::test(CreateTeacher::class)
+            ->fillForm([
+                'first_name' => 'Nino',
+                'last_name' => 'Kapanadze',
+                'email' => 'nino-image@example.com',
+                'phone' => '+995 555 111 222',
+                'specialization' => 'Mathematics',
+                'image' => UploadedFile::fake()->image('teacher.jpg'),
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('teachers', [
+            'email' => 'nino-image@example.com',
+            'image' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/teachers/abc123.jpg',
+        ]);
+    }
+
+    public function test_edit_form_loads_existing_teacher_image_without_error(): void
+    {
+        $teacher = Teacher::factory()->create([
+            'image' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/teachers/original.jpg',
+        ]);
+
+        Livewire::test(EditTeacher::class, ['record' => $teacher->getRouteKey()])
+            ->assertFormSet([
+                'image' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/teachers/original.jpg',
+            ]);
     }
 }

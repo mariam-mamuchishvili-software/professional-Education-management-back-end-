@@ -9,6 +9,7 @@ use App\Http\Resources\GroupResource;
 use App\Http\Resources\ModuleResource;
 use App\Http\Resources\StudentResource;
 use App\Models\Student;
+use App\Services\Cloudinary\CloudinaryUploader;
 use Illuminate\Http\Request;
 
 class StudentController extends Controller
@@ -35,7 +36,13 @@ class StudentController extends Controller
      */
     public function store(StoreStudentRequest $request)
     {
-        $student = Student::create($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            $data['image'] = app(CloudinaryUploader::class)->upload($request->file('image'), 'eduhub/students');
+        }
+
+        $student = Student::create($data);
 
         return new StudentResource($student);
     }
@@ -59,7 +66,13 @@ class StudentController extends Controller
      */
     public function update(UpdateStudentRequest $request, Student $student)
     {
-        $student->update($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            $data['image'] = app(CloudinaryUploader::class)->upload($request->file('image'), 'eduhub/students');
+        }
+
+        $student->update($data);
 
         return new StudentResource($student);
     }

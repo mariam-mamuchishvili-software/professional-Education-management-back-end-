@@ -28,6 +28,7 @@ class StoreTeacherRequest extends FormRequest
             'email' => ['required', 'email', 'unique:teachers,email'],
             'phone' => ['required', 'string', 'max:20'],
             'specialization' => ['required', 'string', 'max:255'],
+            'image' => ['nullable', 'image', 'max:4096'],
         ];
     }
 }

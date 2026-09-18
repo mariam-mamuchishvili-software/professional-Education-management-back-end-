@@ -33,6 +33,7 @@ class UpdateTeacherRequest extends FormRequest
             ],
             'phone' => ['sometimes', 'string', 'max:20'],
             'specialization' => ['sometimes', 'string', 'max:255'],
+            'image' => ['sometimes', 'nullable', 'image', 'max:4096'],
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ReplacesCloudinaryImageOnUpdate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 class College extends Model
 {
     use HasFactory;
+    use ReplacesCloudinaryImageOnUpdate;
 
     protected $fillable = [
         'name',
@@ -16,7 +18,13 @@ class College extends Model
         'email',
         'phone',
         'website',
+        'poster',
     ];
+
+    protected function cloudinaryImageAttribute(): string
+    {
+        return 'poster';
+    }
 
     public function teachers()
     {

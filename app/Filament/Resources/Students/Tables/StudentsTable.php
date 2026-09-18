@@ -9,6 +9,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Schemas\Components\Grid;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -21,6 +22,10 @@ class StudentsTable
     {
         return $table
             ->columns([
+                ImageColumn::make('image')
+                    ->label('Photo')
+                    ->circular(),
+
                 TextColumn::make('first_name')
                     ->searchable()
                     ->sortable(),

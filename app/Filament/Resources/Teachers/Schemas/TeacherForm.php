@@ -2,11 +2,14 @@
 
 namespace App\Filament\Resources\Teachers\Schemas;
 
+use App\Services\Cloudinary\CloudinaryUploader;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class TeacherForm
 {
@@ -41,6 +44,22 @@ class TeacherForm
                                 TextInput::make('specialization')
                                     ->required()
                                     ->maxLength(255)
+                                    ->columnSpanFull(),
+
+                                FileUpload::make('image')
+                                    ->label('Profile Image')
+                                    ->image()
+                                    ->maxSize(4096)
+                                    ->imagePreviewHeight(150)
+                                    ->fetchFileInformation(false)
+                                    ->saveUploadedFileUsing(fn (TemporaryUploadedFile $file): string => app(CloudinaryUploader::class)
+                                        ->upload($file, 'eduhub/teachers'))
+                                    ->getUploadedFileUsing(fn (string $file): array => [
+                                        'name' => basename(parse_url($file, PHP_URL_PATH) ?: $file),
+                                        'size' => 0,
+                                        'type' => 'image',
+                                        'url' => $file,
+                                    ])
                                     ->columnSpanFull(),
                             ]),
                     ]),

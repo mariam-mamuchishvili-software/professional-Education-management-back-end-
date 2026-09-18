@@ -7,6 +7,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -17,6 +18,10 @@ class TeachersTable
     {
         return $table
             ->columns([
+                ImageColumn::make('image')
+                    ->label('Photo')
+                    ->circular(),
+
                 TextColumn::make('first_name')
                     ->searchable()
                     ->sortable(),

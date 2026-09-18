@@ -33,6 +33,7 @@ class UpdateStudentRequest extends FormRequest
             ],
             'phone' => ['sometimes', 'string', 'max:20'],
             'birth_date' => ['sometimes', 'date'],
+            'image' => ['sometimes', 'nullable', 'image', 'max:4096'],
         ];
     }
 }
