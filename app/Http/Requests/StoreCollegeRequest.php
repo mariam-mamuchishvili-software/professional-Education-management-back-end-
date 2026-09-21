@@ -29,6 +29,8 @@ class StoreCollegeRequest extends FormRequest
             'phone' => ['required', 'string', 'max:20'],
             'website' => ['nullable', 'string', 'max:255'],
             'poster' => ['nullable', 'image', 'max:4096'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
         ];
     }
 }

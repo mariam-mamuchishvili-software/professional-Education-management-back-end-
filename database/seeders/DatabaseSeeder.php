@@ -3,11 +3,14 @@
 namespace Database\Seeders;
 
 use App\Models\College;
+use App\Models\CollegeDetail;
 use App\Models\Group;
 use App\Models\Module;
 use App\Models\Profession;
+use App\Models\SocialLink;
 use App\Models\Student;
 use App\Models\Teacher;
+use App\Models\TeacherDetail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
@@ -34,6 +37,16 @@ class DatabaseSeeder extends Seeder
         $this->attachCyclically($modules, $professions, 'professions');
         $this->attachCyclically($students, $groups, 'groups');
         $this->attachCyclically($students, $modules, 'modules');
+
+        $colleges->each(fn (College $college) => $this->seedSocialLinks(
+            CollegeDetail::factory()->for($college, 'college')->create(),
+            3
+        ));
+
+        $teachers->each(fn (Teacher $teacher) => $this->seedSocialLinks(
+            TeacherDetail::factory()->for($teacher, 'teacher')->create(),
+            2
+        ));
     }
 
     /**
@@ -55,5 +68,18 @@ class DatabaseSeeder extends Seeder
 
             $model->{$relation}()->attach(collect([$first, $second])->pluck('id')->unique());
         });
+    }
+
+    /**
+     * Give a CollegeDetail/TeacherDetail a random, unique-per-platform set of social links.
+     */
+    private function seedSocialLinks(Model $detail, int $count): void
+    {
+        collect(array_keys(SocialLink::PLATFORMS))
+            ->shuffle()
+            ->take($count)
+            ->each(fn (string $platform) => SocialLink::factory()
+                ->for($detail, 'socialable')
+                ->create(['platform' => $platform]));
     }
 }

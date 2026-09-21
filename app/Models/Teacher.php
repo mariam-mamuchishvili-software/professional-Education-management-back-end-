@@ -34,4 +34,9 @@ class Teacher extends Model
     {
         return $this->belongsToMany(Module::class);
     }
+
+    public function detail()
+    {
+        return $this->hasOne(TeacherDetail::class);
+    }
 }

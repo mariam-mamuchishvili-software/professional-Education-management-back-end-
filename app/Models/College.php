@@ -19,6 +19,13 @@ class College extends Model
         'phone',
         'website',
         'poster',
+        'latitude',
+        'longitude',
+    ];
+
+    protected $casts = [
+        'latitude' => 'decimal:7',
+        'longitude' => 'decimal:7',
     ];
 
     protected function cloudinaryImageAttribute(): string
@@ -29,6 +36,11 @@ class College extends Model
     public function teachers()
     {
         return $this->belongsToMany(Teacher::class, 'collage_teacher');
+    }
+
+    public function detail()
+    {
+        return $this->hasOne(CollegeDetail::class);
     }
 
     /**

@@ -24,6 +24,7 @@ class TeacherResource extends JsonResource
             'image' => $this->image,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'detail' => $this->whenLoaded('detail', fn () => $this->detail ? new TeacherDetailResource($this->detail) : null),
             'colleges' => CollegeResource::collection($this->whenLoaded('colleges')),
             'modules' => ModuleResource::collection($this->whenLoaded('modules')),
         ];
