@@ -6,6 +6,7 @@ use App\Models\Concerns\ReplacesCloudinaryImageOnUpdate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class College extends Model
 {
@@ -41,6 +42,11 @@ class College extends Model
     public function detail()
     {
         return $this->hasOne(CollegeDetail::class);
+    }
+
+    public function slides(): HasMany
+    {
+        return $this->hasMany(Slide::class);
     }
 
     /**

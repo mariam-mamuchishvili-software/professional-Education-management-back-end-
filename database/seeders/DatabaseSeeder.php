@@ -7,6 +7,7 @@ use App\Models\CollegeDetail;
 use App\Models\Group;
 use App\Models\Module;
 use App\Models\Profession;
+use App\Models\Slide;
 use App\Models\SocialLink;
 use App\Models\Student;
 use App\Models\Teacher;
@@ -47,6 +48,8 @@ class DatabaseSeeder extends Seeder
             TeacherDetail::factory()->for($teacher, 'teacher')->create(),
             2
         ));
+
+        $colleges->each(fn (College $college) => Slide::factory(3)->for($college)->create());
     }
 
     /**

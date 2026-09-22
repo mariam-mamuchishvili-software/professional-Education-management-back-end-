@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\College;
 use App\Models\Module;
+use App\Models\Slide;
 use App\Models\Student;
 use App\Models\Teacher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -55,6 +56,29 @@ class CollegeControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonCount(2, 'data.teachers')
             ->assertJsonPath('data.teachers.0.id', $teachers[0]->id);
+    }
+
+    public function test_show_always_includes_slides(): void
+    {
+        $college = College::factory()->create();
+        $slides = Slide::factory(2)->for($college)->create();
+
+        $response = $this->getJson("/api/colleges/{$college->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(2, 'data.slides')
+            ->assertJsonPath('data.slides.0.id', $slides[0]->id);
+    }
+
+    public function test_index_always_includes_slides(): void
+    {
+        $college = College::factory()->create();
+        $slides = Slide::factory(2)->for($college)->create();
+
+        $response = $this->getJson('/api/colleges');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(2, 'data.0.slides');
     }
 
     public function test_index_returns_colleges_with_teachers_when_included(): void

@@ -54,6 +54,10 @@ class CollegeInfolist
                                     ->label('Teachers')
                                     ->state(fn ($record) => $record->teachers()->count()),
 
+                                TextEntry::make('slides_count')
+                                    ->label('Slides')
+                                    ->state(fn ($record) => $record->slides()->count()),
+
                                 TextEntry::make('created_at')
                                     ->dateTime(),
 

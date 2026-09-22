@@ -48,6 +48,12 @@ class CollegesTable
                     ->badge()
                     ->sortable(),
 
+                TextColumn::make('slides_count')
+                    ->label('Slides')
+                    ->counts('slides')
+                    ->badge()
+                    ->sortable(),
+
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

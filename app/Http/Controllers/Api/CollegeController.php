@@ -23,7 +23,7 @@ class CollegeController extends Controller
         $limit = max((int) $request->query('limit', 30), 1);
         $includes = $this->resolveIncludes($request, $this->allowedIncludes());
 
-        $colleges = College::with([...$this->eagerLoadableIncludes($includes), 'detail.socialLinks'])
+        $colleges = College::with([...$this->eagerLoadableIncludes($includes), 'detail.socialLinks', 'slides'])
             ->skip($skip)->take($limit)->get();
 
         $colleges->each(fn (College $college) => $this->attachComputedIncludes($college, $includes));
@@ -58,7 +58,7 @@ class CollegeController extends Controller
     {
         $includes = $this->resolveIncludes($request, $this->allowedIncludes());
 
-        $college = College::with([...$this->eagerLoadableIncludes($includes), 'detail.socialLinks'])->find($id);
+        $college = College::with([...$this->eagerLoadableIncludes($includes), 'detail.socialLinks', 'slides'])->find($id);
 
         if (! $college) {
             return response()->json(['message' => 'College not found'], 404);
