@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Profession extends Model
 {
@@ -25,5 +26,10 @@ class Profession extends Model
     public function groups()
     {
         return $this->hasMany(Group::class);
+    }
+
+    public function colleges(): BelongsToMany
+    {
+        return $this->belongsToMany(College::class)->withTimestamps();
     }
 }

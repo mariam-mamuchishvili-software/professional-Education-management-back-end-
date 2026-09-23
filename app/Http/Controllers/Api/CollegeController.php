@@ -23,7 +23,7 @@ class CollegeController extends Controller
         $limit = max((int) $request->query('limit', 30), 1);
         $includes = $this->resolveIncludes($request, $this->allowedIncludes());
 
-        $colleges = College::with([...$this->eagerLoadableIncludes($includes), 'detail.socialLinks', 'slides'])
+        $colleges = College::with([...$this->eagerLoadableIncludes($includes), 'detail.socialLinks', 'slides', 'professions'])
             ->skip($skip)->take($limit)->get();
 
         $colleges->each(fn (College $college) => $this->attachComputedIncludes($college, $includes));
@@ -60,7 +60,7 @@ class CollegeController extends Controller
     {
         $includes = $this->resolveIncludes($request, $this->allowedIncludes());
 
-        $college = College::with([...$this->eagerLoadableIncludes($includes), 'detail.socialLinks', 'slides'])->find($id);
+        $college = College::with([...$this->eagerLoadableIncludes($includes), 'detail.socialLinks', 'slides', 'professions'])->find($id);
 
         if (! $college) {
             return response()->json(['message' => 'College not found'], 404);
@@ -137,9 +137,9 @@ class CollegeController extends Controller
 
     /**
      * Allowlist tree of relation paths that may be requested via ?include=, up to 3 levels deep.
-     * 'professions' and 'groups' aren't native Eloquent relations on College (see
-     * College::relatedProfessions()/relatedGroups()), so they're excluded from
-     * self::COMPUTED_INCLUDES before being passed to with() — see eagerLoadableIncludes().
+     * 'groups' isn't a native Eloquent relation on College (see College::relatedGroups()),
+     * so it's excluded via self::COMPUTED_INCLUDES before being passed to with() — see
+     * eagerLoadableIncludes(). 'professions' is always eager loaded, so it isn't listed here.
      *
      * @return array<string, array<mixed>>
      */
@@ -152,7 +152,6 @@ class CollegeController extends Controller
                     'professions' => [],
                 ],
             ],
-            'professions' => [],
             'groups' => [],
         ];
     }
@@ -163,7 +162,7 @@ class CollegeController extends Controller
      *
      * @var array<int, string>
      */
-    private const COMPUTED_INCLUDES = ['professions', 'groups'];
+    private const COMPUTED_INCLUDES = ['groups'];
 
     /**
      * @param  array<int, string>  $includes
@@ -181,10 +180,6 @@ class CollegeController extends Controller
      */
     private function attachComputedIncludes(College $college, array $includes): void
     {
-        if (in_array('professions', $includes, true)) {
-            $college->setRelation('professions', $college->relatedProfessions()->get());
-        }
-
         if (in_array('groups', $includes, true)) {
             $college->setRelation('groups', $college->relatedGroups()->get());
         }

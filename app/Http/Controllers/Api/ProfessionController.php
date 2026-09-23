@@ -23,7 +23,7 @@ class ProfessionController extends Controller
         $limit = max((int) $request->query('limit', 30), 1);
 
         return ProfessionResource::collection(
-            Profession::with($this->resolveIncludes($request, $this->allowedIncludes()))->skip($skip)->take($limit)->get()
+            Profession::with($this->eagerLoads($request))->skip($skip)->take($limit)->get()
         )->additional([
             'total' => Profession::count(),
             'skip' => $skip,
@@ -46,7 +46,7 @@ class ProfessionController extends Controller
      */
     public function show(Request $request, int $id)
     {
-        $profession = Profession::with($this->resolveIncludes($request, $this->allowedIncludes()))->find($id);
+        $profession = Profession::with($this->eagerLoads($request))->find($id);
 
         if (! $profession) {
             return response()->json(['message' => 'Profession not found'], 404);
@@ -120,6 +120,19 @@ class ProfessionController extends Controller
     }
 
     /**
+     * Relations to eager load for the requested ?include= paths. CollegeResource always
+     * serializes 'slides', so nested colleges get them preloaded to avoid N+1 queries.
+     *
+     * @return array<int, string>
+     */
+    private function eagerLoads(Request $request): array
+    {
+        $includes = $this->resolveIncludes($request, $this->allowedIncludes());
+
+        return in_array('colleges', $includes, true) ? [...$includes, 'colleges.slides'] : $includes;
+    }
+
+    /**
      * Allowlist tree of relation paths that may be eager loaded via ?include=, up to 3 levels deep.
      *
      * @return array<string, array<mixed>>
@@ -135,6 +148,7 @@ class ProfessionController extends Controller
             'groups' => [
                 'students' => [],
             ],
+            'colleges' => [],
         ];
     }
 }

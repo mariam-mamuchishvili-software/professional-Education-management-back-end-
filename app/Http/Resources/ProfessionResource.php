@@ -25,6 +25,7 @@ class ProfessionResource extends JsonResource
             'updated_at' => $this->updated_at,
             'modules' => ModuleResource::collection($this->whenLoaded('modules')),
             'groups' => GroupResource::collection($this->whenLoaded('groups')),
+            'colleges' => CollegeResource::collection($this->whenLoaded('colleges')),
         ];
     }
 }

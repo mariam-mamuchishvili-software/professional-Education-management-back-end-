@@ -6,6 +6,7 @@ use App\Models\Concerns\ReplacesCloudinaryImageOnUpdate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class College extends Model
@@ -50,23 +51,15 @@ class College extends Model
         return $this->hasMany(Slide::class);
     }
 
-    /**
-     * Professions taught at this college, derived from the modules its teachers teach.
-     * Deliberately not named professions() / not a Relation instance: College has no direct
-     * FK/pivot to Profession, so this can't be eager loaded via with() — callers must
-     * ->get() it and attach the result via setRelation('professions', ...) explicitly.
-     */
-    public function relatedProfessions(): Builder
+    public function professions(): BelongsToMany
     {
-        return Profession::query()->whereHas(
-            'modules.teachers.colleges',
-            fn (Builder $query) => $query->whereKey($this->id)
-        );
+        return $this->belongsToMany(Profession::class)->withTimestamps();
     }
 
     /**
-     * Groups studying a profession taught at this college, derived the same way as
-     * relatedProfessions(). Not eager loadable via with() — see relatedProfessions().
+     * Groups studying a profession taught at this college, derived from the modules its
+     * teachers teach. Not a Relation instance, so it can't be eager loaded via with() —
+     * callers must ->get() it and attach the result via setRelation('groups', ...) explicitly.
      */
     public function relatedGroups(): Builder
     {

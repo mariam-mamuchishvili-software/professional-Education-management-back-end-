@@ -6,6 +6,7 @@ use App\Filament\Resources\Colleges\Pages\CreateCollege;
 use App\Filament\Resources\Colleges\Pages\EditCollege;
 use App\Filament\Resources\Colleges\Pages\ListColleges;
 use App\Models\College;
+use App\Models\Profession;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -105,6 +106,21 @@ class CollegeResourceTest extends TestCase
             'id' => $college->id,
             'name' => 'Updated College Name',
         ]);
+    }
+
+    public function test_can_attach_professions_to_a_college(): void
+    {
+        $college = College::factory()->create();
+        $professions = Profession::factory(2)->create();
+
+        Livewire::test(EditCollege::class, ['record' => $college->getRouteKey()])
+            ->fillForm([
+                'professions' => $professions->modelKeys(),
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertEqualsCanonicalizing($professions->modelKeys(), $college->professions()->pluck('professions.id')->all());
     }
 
     public function test_can_delete_a_college(): void

@@ -65,6 +65,13 @@ class CollegeForm
                                     ->maxValue(180)
                                     ->nullable(),
 
+                                Select::make('professions')
+                                    ->relationship('professions', 'name')
+                                    ->multiple()
+                                    ->preload()
+                                    ->searchable()
+                                    ->columnSpanFull(),
+
                                 FileUpload::make('poster')
                                     ->label('Poster')
                                     ->image()

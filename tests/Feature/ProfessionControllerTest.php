@@ -62,6 +62,20 @@ class ProfessionControllerTest extends TestCase
             ->assertJsonMissingPath('data.groups');
     }
 
+    public function test_show_returns_profession_with_colleges_when_included(): void
+    {
+        $profession = Profession::factory()->create();
+        $college = College::factory()->create();
+        $profession->colleges()->attach($college);
+
+        $response = $this->getJson("/api/professions/{$profession->id}?include=colleges");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1, 'data.colleges')
+            ->assertJsonPath('data.colleges.0.id', $college->id)
+            ->assertJsonMissingPath('data.modules');
+    }
+
     public function test_show_returns_profession_with_modules_and_groups_when_included(): void
     {
         $profession = Profession::factory()->create();

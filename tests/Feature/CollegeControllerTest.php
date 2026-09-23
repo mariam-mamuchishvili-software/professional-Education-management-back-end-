@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\College;
 use App\Models\Module;
+use App\Models\Profession;
 use App\Models\Slide;
 use App\Models\Student;
 use App\Models\Teacher;
@@ -68,6 +69,31 @@ class CollegeControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonCount(2, 'data.slides')
             ->assertJsonPath('data.slides.0.id', $slides[0]->id);
+    }
+
+    public function test_show_always_includes_attached_professions(): void
+    {
+        $college = College::factory()->create();
+        $professions = Profession::factory(2)->create();
+        $college->professions()->attach($professions);
+        Profession::factory()->create();
+
+        $response = $this->getJson("/api/colleges/{$college->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(2, 'data.professions')
+            ->assertJsonPath('data.professions.0.id', $professions[0]->id);
+    }
+
+    public function test_index_always_includes_attached_professions(): void
+    {
+        $college = College::factory()->create();
+        $college->professions()->attach(Profession::factory(2)->create());
+
+        $response = $this->getJson('/api/colleges');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(2, 'data.0.professions');
     }
 
     public function test_index_always_includes_slides(): void
