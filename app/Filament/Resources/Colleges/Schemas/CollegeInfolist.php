@@ -24,6 +24,11 @@ class CollegeInfolist
                                     ->circular()
                                     ->columnSpanFull(),
 
+                                ImageEntry::make('logo')
+                                    ->label('Logo')
+                                    ->circular()
+                                    ->columnSpanFull(),
+
                                 TextEntry::make('name')
                                     ->columnSpanFull(),
 

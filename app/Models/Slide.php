@@ -22,9 +22,9 @@ class Slide extends Model
         'description',
     ];
 
-    protected function cloudinaryImageAttribute(): string
+    protected function cloudinaryImageAttributes(): array
     {
-        return 'image';
+        return ['image'];
     }
 
     public function college(): BelongsTo

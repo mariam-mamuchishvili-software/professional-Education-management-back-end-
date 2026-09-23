@@ -23,6 +23,10 @@ class CollegesTable
                     ->label('Poster')
                     ->circular(),
 
+                ImageColumn::make('logo')
+                    ->label('Logo')
+                    ->circular(),
+
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),

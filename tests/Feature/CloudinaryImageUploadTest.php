@@ -122,6 +122,52 @@ class CloudinaryImageUploadTest extends TestCase
         });
     }
 
+    public function test_college_store_uploads_logo_to_cloudinary(): void
+    {
+        $this->fakeCloudinary('eduhub/colleges/logo123');
+
+        $response = $this->postJson('/api/colleges', [
+            'name' => 'Logo College',
+            'address' => 'Tbilisi, Georgia',
+            'email' => 'college-logo@example.com',
+            'phone' => '+995 555 123 456',
+            'logo' => UploadedFile::fake()->image('logo.png'),
+        ]);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('data.logo', 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/colleges/logo123.jpg')
+            ->assertJsonPath('data.poster', null);
+
+        $this->assertDatabaseHas('colleges', [
+            'email' => 'college-logo@example.com',
+            'logo' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/colleges/logo123.jpg',
+        ]);
+    }
+
+    public function test_college_update_with_new_logo_replaces_old_logo_and_keeps_poster(): void
+    {
+        $college = College::factory()->create([
+            'poster' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/colleges/poster.jpg',
+            'logo' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/colleges/old-logo.jpg',
+        ]);
+
+        $this->fakeCloudinary('eduhub/colleges/new-logo');
+
+        $response = $this->putJson("/api/colleges/{$college->id}", [
+            'logo' => UploadedFile::fake()->image('new-logo.png'),
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.logo', 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/colleges/new-logo.jpg')
+            ->assertJsonPath('data.poster', 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/colleges/poster.jpg');
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), '/image/destroy')
+            && $request['public_id'] === 'eduhub/colleges/old-logo');
+
+        Http::assertNotSent(fn ($request) => str_contains($request->url(), '/image/destroy')
+            && $request['public_id'] === 'eduhub/colleges/poster');
+    }
+
     public function test_teacher_store_uploads_image_to_cloudinary(): void
     {
         $this->fakeCloudinary('eduhub/teachers/abc123');

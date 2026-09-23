@@ -20,6 +20,7 @@ class College extends Model
         'phone',
         'website',
         'poster',
+        'logo',
         'latitude',
         'longitude',
     ];
@@ -29,9 +30,9 @@ class College extends Model
         'longitude' => 'decimal:7',
     ];
 
-    protected function cloudinaryImageAttribute(): string
+    protected function cloudinaryImageAttributes(): array
     {
-        return 'poster';
+        return ['poster', 'logo'];
     }
 
     public function teachers()

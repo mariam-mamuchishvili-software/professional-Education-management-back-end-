@@ -22,6 +22,7 @@ class CollegeResource extends JsonResource
             'phone' => $this->phone,
             'website' => $this->website,
             'poster' => $this->poster,
+            'logo' => $this->logo,
             'latitude' => $this->latitude !== null ? (float) $this->latitude : null,
             'longitude' => $this->longitude !== null ? (float) $this->longitude : null,
             'created_at' => $this->created_at,

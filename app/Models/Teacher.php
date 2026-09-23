@@ -20,9 +20,9 @@ class Teacher extends Model
         'image',
     ];
 
-    protected function cloudinaryImageAttribute(): string
+    protected function cloudinaryImageAttributes(): array
     {
-        return 'image';
+        return ['image'];
     }
 
     public function colleges()

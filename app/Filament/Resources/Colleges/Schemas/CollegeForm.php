@@ -80,6 +80,22 @@ class CollegeForm
                                         'url' => $file,
                                     ])
                                     ->columnSpanFull(),
+
+                                FileUpload::make('logo')
+                                    ->label('Logo')
+                                    ->image()
+                                    ->maxSize(4096)
+                                    ->imagePreviewHeight(150)
+                                    ->fetchFileInformation(false)
+                                    ->saveUploadedFileUsing(fn (TemporaryUploadedFile $file): string => app(CloudinaryUploader::class)
+                                        ->upload($file, 'eduhub/colleges'))
+                                    ->getUploadedFileUsing(fn (string $file): array => [
+                                        'name' => basename(parse_url($file, PHP_URL_PATH) ?: $file),
+                                        'size' => 0,
+                                        'type' => 'image',
+                                        'url' => $file,
+                                    ])
+                                    ->columnSpanFull(),
                             ]),
                     ]),
 

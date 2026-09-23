@@ -42,8 +42,10 @@ class CollegeController extends Controller
     {
         $data = $request->validated();
 
-        if ($request->hasFile('poster')) {
-            $data['poster'] = app(CloudinaryUploader::class)->upload($request->file('poster'), 'eduhub/colleges');
+        foreach (['poster', 'logo'] as $imageField) {
+            if ($request->hasFile($imageField)) {
+                $data[$imageField] = app(CloudinaryUploader::class)->upload($request->file($imageField), 'eduhub/colleges');
+            }
         }
 
         $college = College::create($data);
@@ -76,8 +78,10 @@ class CollegeController extends Controller
     {
         $data = $request->validated();
 
-        if ($request->hasFile('poster')) {
-            $data['poster'] = app(CloudinaryUploader::class)->upload($request->file('poster'), 'eduhub/colleges');
+        foreach (['poster', 'logo'] as $imageField) {
+            if ($request->hasFile($imageField)) {
+                $data[$imageField] = app(CloudinaryUploader::class)->upload($request->file($imageField), 'eduhub/colleges');
+            }
         }
 
         $college->update($data);
