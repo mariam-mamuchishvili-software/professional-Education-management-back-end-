@@ -31,6 +31,17 @@ class College extends Model
         'longitude' => 'decimal:7',
     ];
 
+    /**
+     * Delete slides through Eloquent (instead of relying only on the DB cascade)
+     * so each slide's Cloudinary image is cleaned up by its own model events.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (College $college) {
+            $college->slides()->each(fn (Slide $slide) => $slide->delete());
+        });
+    }
+
     protected function cloudinaryImageAttributes(): array
     {
         return ['poster', 'logo'];

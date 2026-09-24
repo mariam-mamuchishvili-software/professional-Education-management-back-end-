@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Students\RelationManagers;
 
+use App\Filament\Resources\Modules\ModuleResource;
+use App\Models\Module;
 use Filament\Actions\AttachAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DetachAction;
@@ -17,10 +19,14 @@ class ModulesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->recordUrl(fn (Module $record): string => ModuleResource::getUrl('edit', ['record' => $record]))
             ->recordTitleAttribute('name')
             ->columns([
                 TextColumn::make('name')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable()
+                    ->url(fn (Module $record): string => ModuleResource::getUrl('edit', ['record' => $record]))
+                    ->openUrlInNewTab(false),
 
                 TextColumn::make('code')
                     ->searchable(),

@@ -40,7 +40,7 @@ class StudentForm
                                 TextInput::make('phone')
                                     ->tel()
                                     ->required()
-                                    ->maxLength(255),
+                                    ->maxLength(20),
 
                                 DatePicker::make('birth_date')
                                     ->required()

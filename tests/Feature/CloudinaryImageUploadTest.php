@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\College;
+use App\Models\Slide;
+use App\Models\Student;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
@@ -220,6 +222,53 @@ class CloudinaryImageUploadTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['poster']);
+
+        Http::assertNothingSent();
+    }
+
+    public function test_deleting_a_student_removes_its_image_from_cloudinary(): void
+    {
+        $this->fakeCloudinary('unused');
+
+        $student = Student::factory()->create([
+            'image' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/students/to-delete.jpg',
+        ]);
+
+        $this->deleteJson("/api/students/{$student->id}")->assertStatus(200);
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), '/image/destroy')
+            && $request['public_id'] === 'eduhub/students/to-delete');
+    }
+
+    public function test_deleting_a_college_removes_its_poster_logo_and_slide_images_from_cloudinary(): void
+    {
+        $this->fakeCloudinary('unused');
+
+        $college = College::factory()->create([
+            'poster' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/colleges/poster.jpg',
+            'logo' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/colleges/logo.jpg',
+        ]);
+        $slide = Slide::factory()->for($college)->create([
+            'image' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/slides/slide.jpg',
+        ]);
+
+        $this->deleteJson("/api/colleges/{$college->id}")->assertStatus(200);
+
+        $this->assertModelMissing($slide);
+
+        foreach (['eduhub/colleges/poster', 'eduhub/colleges/logo', 'eduhub/slides/slide'] as $publicId) {
+            Http::assertSent(fn ($request) => str_contains($request->url(), '/image/destroy')
+                && $request['public_id'] === $publicId);
+        }
+    }
+
+    public function test_deleting_a_record_without_an_image_never_calls_cloudinary(): void
+    {
+        Http::fake();
+
+        $student = Student::factory()->create(['image' => null]);
+
+        $this->deleteJson("/api/students/{$student->id}")->assertStatus(200);
 
         Http::assertNothingSent();
     }

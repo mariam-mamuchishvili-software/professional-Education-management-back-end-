@@ -38,13 +38,28 @@ class ProfessionsTable
                     ->label('Modules')
                     ->badge()
                     ->separator(',')
+                    ->limitList(2)
+                    ->expandableLimitedList()
                     ->placeholder('—'),
 
                 TextColumn::make('groups.name')
                     ->label('Groups')
                     ->badge()
+                    ->color('warning')
                     ->separator(',')
+                    ->limitList(2)
+                    ->expandableLimitedList()
                     ->placeholder('—'),
+
+                TextColumn::make('colleges.name')
+                    ->label('Colleges')
+                    ->badge()
+                    ->color('primary')
+                    ->separator(',')
+                    ->limitList(2)
+                    ->expandableLimitedList()
+                    ->placeholder('—')
+                    ->toggleable(),
 
                 TextColumn::make('created_at')
                     ->dateTime()

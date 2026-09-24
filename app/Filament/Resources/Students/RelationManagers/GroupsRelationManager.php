@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources\Students\RelationManagers;
 
+use App\Filament\Resources\Groups\GroupResource;
+use App\Filament\Resources\Professions\ProfessionResource;
+use App\Models\Group;
 use Filament\Actions\AttachAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DetachAction;
@@ -17,16 +20,24 @@ class GroupsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->recordUrl(fn (Group $record): string => GroupResource::getUrl('edit', ['record' => $record]))
             ->recordTitleAttribute('name')
             ->columns([
                 TextColumn::make('name')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable()
+                    ->url(fn (Group $record): string => GroupResource::getUrl('edit', ['record' => $record]))
+                    ->openUrlInNewTab(false),
 
                 TextColumn::make('code')
                     ->searchable(),
 
                 TextColumn::make('profession.name')
-                    ->label('Profession'),
+                    ->label('Profession')
+                    ->url(fn (Group $record): ?string => $record->profession_id
+                        ? ProfessionResource::getUrl('edit', ['record' => $record->profession_id])
+                        : null)
+                    ->placeholder('—'),
             ])
             ->headerActions([
                 AttachAction::make()

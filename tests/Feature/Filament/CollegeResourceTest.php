@@ -80,6 +80,19 @@ class CollegeResourceTest extends TestCase
             ]);
     }
 
+    public function test_create_rejects_a_phone_longer_than_the_api_allows(): void
+    {
+        Livewire::test(CreateCollege::class)
+            ->fillForm([
+                'name' => 'Long Phone College',
+                'address' => 'Tbilisi, Georgia',
+                'email' => 'long-phone@example.com',
+                'phone' => str_repeat('5', 21),
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['phone' => 'max']);
+    }
+
     public function test_create_rejects_a_duplicate_email(): void
     {
         College::factory()->create(['email' => 'existing@example.com']);
@@ -157,6 +170,28 @@ class CollegeResourceTest extends TestCase
             ->callAction(DeleteAction::class);
 
         $this->assertModelMissing($college);
+    }
+
+    public function test_deleting_a_college_from_the_panel_removes_its_images_from_cloudinary(): void
+    {
+        Http::fake([
+            'api.cloudinary.com/v1_1/demo-cloud/image/destroy' => Http::response(['result' => 'ok']),
+        ]);
+
+        $college = College::factory()->create([
+            'poster' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/colleges/poster.jpg',
+            'logo' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/colleges/logo.jpg',
+        ]);
+
+        Livewire::test(EditCollege::class, ['record' => $college->getRouteKey()])
+            ->callAction(DeleteAction::class);
+
+        $this->assertModelMissing($college);
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), '/image/destroy')
+            && $request['public_id'] === 'eduhub/colleges/poster');
+        Http::assertSent(fn ($request) => str_contains($request->url(), '/image/destroy')
+            && $request['public_id'] === 'eduhub/colleges/logo');
     }
 
     public function test_can_create_a_college_with_a_poster_uploaded_to_cloudinary(): void

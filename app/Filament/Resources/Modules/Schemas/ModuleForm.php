@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Modules\Schemas;
 
+use App\Models\Student;
+use App\Models\Teacher;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -30,12 +32,12 @@ class ModuleForm
 
                                 TextInput::make('duration')
                                     ->label('Duration (hours)')
-                                    ->numeric()
+                                    ->integer()
                                     ->minValue(1)
                                     ->required(),
 
                                 TextInput::make('credits')
-                                    ->numeric()
+                                    ->integer()
                                     ->minValue(1)
                                     ->required(),
 
@@ -49,9 +51,10 @@ class ModuleForm
                     ->schema([
                         Select::make('teachers')
                             ->relationship('teachers', 'first_name')
+                            ->getOptionLabelFromRecordUsing(fn (Teacher $record): string => $record->full_name)
                             ->multiple()
                             ->preload()
-                            ->searchable(),
+                            ->searchable(['first_name', 'last_name', 'email']),
 
                         Select::make('professions')
                             ->relationship('professions', 'name')
@@ -61,9 +64,10 @@ class ModuleForm
 
                         Select::make('students')
                             ->relationship('students', 'first_name')
+                            ->getOptionLabelFromRecordUsing(fn (Student $record): string => $record->full_name)
                             ->multiple()
                             ->preload()
-                            ->searchable(),
+                            ->searchable(['first_name', 'last_name', 'email']),
                     ]),
             ]);
     }

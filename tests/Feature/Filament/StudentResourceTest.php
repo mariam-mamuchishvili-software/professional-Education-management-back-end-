@@ -188,4 +188,17 @@ class StudentResourceTest extends TestCase
                 'image' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/students/original.jpg',
             ]);
     }
+
+    public function test_list_page_can_be_filtered_by_college(): void
+    {
+        $college = College::factory()->create();
+        $enrolled = Student::factory()->create();
+        $college->students()->attach($enrolled);
+        $other = Student::factory()->create();
+
+        Livewire::test(ListStudents::class)
+            ->filterTable('colleges', [$college->id])
+            ->assertCanSeeTableRecords([$enrolled])
+            ->assertCanNotSeeTableRecords([$other]);
+    }
 }

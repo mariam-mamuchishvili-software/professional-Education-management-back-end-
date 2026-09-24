@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Teachers\RelationManagers;
 
+use App\Filament\Resources\Colleges\CollegeResource;
+use App\Models\College;
 use Filament\Actions\AttachAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DetachAction;
@@ -17,10 +19,14 @@ class CollegesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->recordUrl(fn (College $record): string => CollegeResource::getUrl('edit', ['record' => $record]))
             ->recordTitleAttribute('name')
             ->columns([
                 TextColumn::make('name')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable()
+                    ->url(fn (College $record): string => CollegeResource::getUrl('edit', ['record' => $record]))
+                    ->openUrlInNewTab(false),
 
                 TextColumn::make('email')
                     ->searchable(),

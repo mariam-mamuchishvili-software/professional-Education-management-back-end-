@@ -19,7 +19,7 @@ class CollegeFactory extends Factory
             'name' => fake()->company(),
             'address' => fake()->address(),
             'email' => fake()->unique()->safeEmail(),
-            'phone' => fake()->phoneNumber(),
+            'phone' => fake()->numerify('+995 5## ### ###'),
             'website' => fake()->url(),
         ];
     }

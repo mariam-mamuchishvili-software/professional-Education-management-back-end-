@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Slides\Tables;
 
+use App\Filament\Resources\Colleges\CollegeResource;
+use App\Models\Slide;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -28,7 +30,11 @@ class SlidesTable
                 TextColumn::make('college.name')
                     ->label('College')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->url(fn (Slide $record): ?string => $record->college_id
+                        ? CollegeResource::getUrl('edit', ['record' => $record->college_id])
+                        : null)
+                    ->placeholder('—'),
 
                 TextColumn::make('created_at')
                     ->dateTime()

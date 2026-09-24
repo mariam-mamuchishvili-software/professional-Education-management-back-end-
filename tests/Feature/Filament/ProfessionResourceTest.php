@@ -5,10 +5,14 @@ namespace Tests\Feature\Filament;
 use App\Filament\Resources\Professions\Pages\CreateProfession;
 use App\Filament\Resources\Professions\Pages\EditProfession;
 use App\Filament\Resources\Professions\Pages\ListProfessions;
+use App\Filament\Resources\Professions\RelationManagers\CollegesRelationManager;
+use App\Models\College;
 use App\Models\Module;
 use App\Models\Profession;
 use App\Models\User;
+use Filament\Actions\AttachAction;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DetachAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -111,5 +115,24 @@ class ProfessionResourceTest extends TestCase
             ->callAction(DeleteAction::class);
 
         $this->assertModelMissing($profession);
+    }
+
+    public function test_colleges_relation_manager_can_attach_and_detach_colleges(): void
+    {
+        $profession = Profession::factory()->create();
+        $college = College::factory()->create();
+
+        $relationManager = Livewire::test(CollegesRelationManager::class, [
+            'ownerRecord' => $profession,
+            'pageClass' => EditProfession::class,
+        ]);
+
+        $relationManager->callTableAction(AttachAction::class, data: ['recordId' => $college->id])
+            ->assertHasNoTableActionErrors()
+            ->assertCanSeeTableRecords([$college]);
+
+        $relationManager->callTableAction(DetachAction::class, $college);
+
+        $this->assertFalse($profession->colleges()->whereKey($college->id)->exists());
     }
 }

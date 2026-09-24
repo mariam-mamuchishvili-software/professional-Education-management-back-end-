@@ -79,6 +79,22 @@ class ModuleResourceTest extends TestCase
             ]);
     }
 
+    public function test_create_rejects_non_integer_duration_and_credits(): void
+    {
+        Livewire::test(CreateModule::class)
+            ->fillForm([
+                'name' => 'Fractional Module',
+                'code' => 'FRAC-01',
+                'duration' => 1.5,
+                'credits' => 2.5,
+            ])
+            ->call('create')
+            ->assertHasFormErrors([
+                'duration' => 'integer',
+                'credits' => 'integer',
+            ]);
+    }
+
     public function test_create_rejects_a_duplicate_code(): void
     {
         Module::factory()->create(['code' => 'MOD-999']);

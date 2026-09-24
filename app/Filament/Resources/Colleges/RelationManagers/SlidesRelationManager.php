@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Colleges\RelationManagers;
 
+use App\Filament\Resources\Slides\SlideResource;
+use App\Models\Slide;
 use App\Services\Cloudinary\CloudinaryUploader;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -53,13 +55,17 @@ class SlidesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->recordUrl(fn (Slide $record): string => SlideResource::getUrl('edit', ['record' => $record]))
             ->recordTitleAttribute('title')
             ->columns([
                 ImageColumn::make('image')
                     ->label('Image'),
 
                 TextColumn::make('title')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable()
+                    ->url(fn (Slide $record): string => SlideResource::getUrl('edit', ['record' => $record]))
+                    ->openUrlInNewTab(false),
 
                 TextColumn::make('description')
                     ->limit(50)

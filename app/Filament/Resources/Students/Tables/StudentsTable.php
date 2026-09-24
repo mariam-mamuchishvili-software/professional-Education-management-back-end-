@@ -50,12 +50,24 @@ class StudentsTable
                     ->label('Groups')
                     ->badge()
                     ->separator(',')
+                    ->limitList(2)
+                    ->expandableLimitedList()
                     ->placeholder('—'),
 
                 TextColumn::make('modules.name')
                     ->label('Modules')
                     ->badge()
                     ->separator(',')
+                    ->limitList(2)
+                    ->expandableLimitedList()
+                    ->placeholder('—'),
+
+                TextColumn::make('colleges.name')
+                    ->label('Colleges')
+                    ->badge()
+                    ->separator(',')
+                    ->limitList(2)
+                    ->expandableLimitedList()
                     ->placeholder('—'),
 
                 TextColumn::make('created_at')
@@ -71,6 +83,11 @@ class StudentsTable
 
                 SelectFilter::make('modules')
                     ->relationship('modules', 'name')
+                    ->multiple()
+                    ->preload(),
+
+                SelectFilter::make('colleges')
+                    ->relationship('colleges', 'name')
                     ->multiple()
                     ->preload(),
 

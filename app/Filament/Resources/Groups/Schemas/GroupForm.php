@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Groups\Schemas;
 
+use App\Models\Student;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
@@ -36,7 +37,7 @@ class GroupForm
                                     ->unique(ignoreRecord: true),
 
                                 TextInput::make('capacity')
-                                    ->numeric()
+                                    ->integer()
                                     ->minValue(1)
                                     ->required(),
 
@@ -54,9 +55,10 @@ class GroupForm
                     ->schema([
                         Select::make('students')
                             ->relationship('students', 'first_name')
+                            ->getOptionLabelFromRecordUsing(fn (Student $record): string => $record->full_name)
                             ->multiple()
                             ->preload()
-                            ->searchable(),
+                            ->searchable(['first_name', 'last_name', 'email']),
                     ]),
             ]);
     }

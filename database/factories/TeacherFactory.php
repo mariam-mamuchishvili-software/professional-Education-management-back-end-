@@ -21,7 +21,7 @@ class TeacherFactory extends Factory
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),
-            'phone' => fake()->phoneNumber(),
+            'phone' => fake()->numerify('+995 5## ### ###'),
             'specialization' => fake()->jobTitle(),
         ];
     }

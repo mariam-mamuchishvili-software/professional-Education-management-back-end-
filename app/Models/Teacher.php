@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\ReplacesCloudinaryImageOnUpdate;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -19,6 +20,14 @@ class Teacher extends Model
         'specialization',
         'image',
     ];
+
+    /**
+     * The first and last name joined, used for compact labels in the admin panel.
+     */
+    protected function fullName(): Attribute
+    {
+        return Attribute::get(fn (): string => trim("{$this->first_name} {$this->last_name}"));
+    }
 
     protected function cloudinaryImageAttributes(): array
     {

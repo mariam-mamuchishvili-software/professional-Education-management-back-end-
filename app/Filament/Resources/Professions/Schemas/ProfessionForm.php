@@ -30,7 +30,7 @@ class ProfessionForm
 
                                 TextInput::make('duration')
                                     ->label('Duration (years)')
-                                    ->numeric()
+                                    ->integer()
                                     ->minValue(1)
                                     ->required(),
 

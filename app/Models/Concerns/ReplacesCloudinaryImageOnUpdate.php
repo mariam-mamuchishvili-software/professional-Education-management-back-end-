@@ -7,8 +7,9 @@ use App\Services\Cloudinary\CloudinaryUploader;
 /**
  * When any of the model's Cloudinary-backed image attributes changes (replaced
  * or cleared), deletes the previous Cloudinary asset before the new value is
- * saved. Applies uniformly to Filament edit forms and API updates, since both
- * ultimately go through Eloquent's `updating` event.
+ * saved, and removes all of the model's assets once the model itself is
+ * deleted. Applies uniformly to Filament (edit, delete, bulk delete) and API
+ * requests, since both ultimately go through Eloquent's model events.
  */
 trait ReplacesCloudinaryImageOnUpdate
 {
@@ -19,6 +20,12 @@ trait ReplacesCloudinaryImageOnUpdate
                 if ($model->isDirty($attribute) && filled($model->getOriginal($attribute))) {
                     app(CloudinaryUploader::class)->delete($model->getOriginal($attribute));
                 }
+            }
+        });
+
+        static::deleted(function (self $model) {
+            foreach ($model->cloudinaryImageAttributes() as $attribute) {
+                app(CloudinaryUploader::class)->delete($model->getAttribute($attribute));
             }
         });
     }

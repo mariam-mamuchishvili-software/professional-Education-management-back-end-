@@ -45,7 +45,7 @@ class CollegeForm
                                 TextInput::make('phone')
                                     ->tel()
                                     ->required()
-                                    ->maxLength(255),
+                                    ->maxLength(20),
 
                                 TextInput::make('website')
                                     ->url()

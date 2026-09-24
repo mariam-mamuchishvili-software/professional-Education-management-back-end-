@@ -6,6 +6,7 @@ use App\Filament\Resources\Professions\Pages\CreateProfession;
 use App\Filament\Resources\Professions\Pages\EditProfession;
 use App\Filament\Resources\Professions\Pages\ListProfessions;
 use App\Filament\Resources\Professions\Pages\ViewProfession;
+use App\Filament\Resources\Professions\RelationManagers\CollegesRelationManager;
 use App\Filament\Resources\Professions\RelationManagers\GroupsRelationManager;
 use App\Filament\Resources\Professions\RelationManagers\ModulesRelationManager;
 use App\Filament\Resources\Professions\Schemas\ProfessionForm;
@@ -49,6 +50,7 @@ class ProfessionResource extends Resource
         return [
             ModulesRelationManager::class,
             GroupsRelationManager::class,
+            CollegesRelationManager::class,
         ];
     }
 

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Professions\RelationManagers;
 
+use App\Filament\Resources\Groups\GroupResource;
+use App\Models\Group;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -49,10 +51,14 @@ class GroupsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->recordUrl(fn (Group $record): string => GroupResource::getUrl('edit', ['record' => $record]))
             ->recordTitleAttribute('name')
             ->columns([
                 TextColumn::make('name')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable()
+                    ->url(fn (Group $record): string => GroupResource::getUrl('edit', ['record' => $record]))
+                    ->openUrlInNewTab(false),
 
                 TextColumn::make('code')
                     ->searchable(),

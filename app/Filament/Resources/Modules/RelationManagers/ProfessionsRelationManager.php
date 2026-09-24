@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Modules\RelationManagers;
 
+use App\Filament\Resources\Professions\ProfessionResource;
+use App\Models\Profession;
 use Filament\Actions\AttachAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DetachAction;
@@ -17,10 +19,14 @@ class ProfessionsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->recordUrl(fn (Profession $record): string => ProfessionResource::getUrl('edit', ['record' => $record]))
             ->recordTitleAttribute('name')
             ->columns([
                 TextColumn::make('name')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable()
+                    ->url(fn (Profession $record): string => ProfessionResource::getUrl('edit', ['record' => $record]))
+                    ->openUrlInNewTab(false),
 
                 TextColumn::make('code')
                     ->searchable(),

@@ -46,12 +46,16 @@ class TeachersTable
                     ->label('Colleges')
                     ->badge()
                     ->separator(',')
+                    ->limitList(2)
+                    ->expandableLimitedList()
                     ->placeholder('—'),
 
                 TextColumn::make('modules.name')
                     ->label('Modules')
                     ->badge()
                     ->separator(',')
+                    ->limitList(2)
+                    ->expandableLimitedList()
                     ->placeholder('—'),
 
                 TextColumn::make('created_at')

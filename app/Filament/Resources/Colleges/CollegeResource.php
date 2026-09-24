@@ -6,6 +6,7 @@ use App\Filament\Resources\Colleges\Pages\CreateCollege;
 use App\Filament\Resources\Colleges\Pages\EditCollege;
 use App\Filament\Resources\Colleges\Pages\ListColleges;
 use App\Filament\Resources\Colleges\Pages\ViewCollege;
+use App\Filament\Resources\Colleges\RelationManagers\ProfessionsRelationManager;
 use App\Filament\Resources\Colleges\RelationManagers\SlidesRelationManager;
 use App\Filament\Resources\Colleges\RelationManagers\StudentsRelationManager;
 use App\Filament\Resources\Colleges\RelationManagers\TeachersRelationManager;
@@ -51,6 +52,7 @@ class CollegeResource extends Resource
             TeachersRelationManager::class,
             StudentsRelationManager::class,
             SlidesRelationManager::class,
+            ProfessionsRelationManager::class,
         ];
     }
 

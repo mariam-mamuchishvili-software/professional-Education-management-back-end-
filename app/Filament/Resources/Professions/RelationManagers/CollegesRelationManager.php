@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\Professions\RelationManagers;
 
-use App\Filament\Resources\Modules\ModuleResource;
-use App\Models\Module;
+use App\Filament\Resources\Colleges\CollegeResource;
+use App\Models\College;
 use Filament\Actions\AttachAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DetachAction;
@@ -12,27 +12,27 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
-class ModulesRelationManager extends RelationManager
+class CollegesRelationManager extends RelationManager
 {
-    protected static string $relationship = 'modules';
+    protected static string $relationship = 'colleges';
 
     public function table(Table $table): Table
     {
         return $table
-            ->recordUrl(fn (Module $record): string => ModuleResource::getUrl('edit', ['record' => $record]))
+            ->recordUrl(fn (College $record): string => CollegeResource::getUrl('edit', ['record' => $record]))
             ->recordTitleAttribute('name')
             ->columns([
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable()
-                    ->url(fn (Module $record): string => ModuleResource::getUrl('edit', ['record' => $record]))
+                    ->url(fn (College $record): string => CollegeResource::getUrl('edit', ['record' => $record]))
                     ->openUrlInNewTab(false),
 
-                TextColumn::make('code')
+                TextColumn::make('email')
+                    ->label('Email address')
                     ->searchable(),
 
-                TextColumn::make('credits')
-                    ->numeric(),
+                TextColumn::make('phone'),
             ])
             ->headerActions([
                 AttachAction::make()
