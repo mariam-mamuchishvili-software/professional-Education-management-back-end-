@@ -5,10 +5,14 @@ namespace Tests\Feature\Filament;
 use App\Filament\Resources\Colleges\Pages\CreateCollege;
 use App\Filament\Resources\Colleges\Pages\EditCollege;
 use App\Filament\Resources\Colleges\Pages\ListColleges;
+use App\Filament\Resources\Colleges\RelationManagers\StudentsRelationManager;
 use App\Models\College;
 use App\Models\Profession;
+use App\Models\Student;
 use App\Models\User;
+use Filament\Actions\AttachAction;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DetachAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
@@ -121,6 +125,28 @@ class CollegeResourceTest extends TestCase
             ->assertHasNoFormErrors();
 
         $this->assertEqualsCanonicalizing($professions->modelKeys(), $college->professions()->pluck('professions.id')->all());
+    }
+
+    public function test_students_relation_manager_can_attach_and_detach_students(): void
+    {
+        $college = College::factory()->create();
+        $attached = Student::factory()->create();
+        $college->students()->attach($attached);
+        $student = Student::factory()->create();
+
+        $relationManager = Livewire::test(StudentsRelationManager::class, [
+            'ownerRecord' => $college,
+            'pageClass' => EditCollege::class,
+        ]);
+
+        $relationManager->assertCanSeeTableRecords([$attached])
+            ->assertCanNotSeeTableRecords([$student])
+            ->callTableAction(AttachAction::class, data: ['recordId' => $student->id])
+            ->assertHasNoTableActionErrors();
+
+        $relationManager->callTableAction(DetachAction::class, $attached);
+
+        $this->assertEquals([$student->id], $college->students()->pluck('students.id')->all());
     }
 
     public function test_can_delete_a_college(): void

@@ -6,6 +6,7 @@ use App\Filament\Resources\Students\Pages\CreateStudent;
 use App\Filament\Resources\Students\Pages\EditStudent;
 use App\Filament\Resources\Students\Pages\ListStudents;
 use App\Filament\Resources\Students\Pages\ViewStudent;
+use App\Filament\Resources\Students\RelationManagers\CollegesRelationManager;
 use App\Filament\Resources\Students\RelationManagers\GroupsRelationManager;
 use App\Filament\Resources\Students\RelationManagers\ModulesRelationManager;
 use App\Filament\Resources\Students\Schemas\StudentForm;
@@ -49,6 +50,7 @@ class StudentResource extends Resource
         return [
             GroupsRelationManager::class,
             ModulesRelationManager::class,
+            CollegesRelationManager::class,
         ];
     }
 

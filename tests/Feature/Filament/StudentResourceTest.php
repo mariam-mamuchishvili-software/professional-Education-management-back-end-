@@ -5,10 +5,13 @@ namespace Tests\Feature\Filament;
 use App\Filament\Resources\Students\Pages\CreateStudent;
 use App\Filament\Resources\Students\Pages\EditStudent;
 use App\Filament\Resources\Students\Pages\ListStudents;
+use App\Filament\Resources\Students\RelationManagers\CollegesRelationManager;
+use App\Models\College;
 use App\Models\Group;
 use App\Models\Module;
 use App\Models\Student;
 use App\Models\User;
+use Filament\Actions\AttachAction;
 use Filament\Actions\DeleteAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -41,10 +44,11 @@ class StudentResourceTest extends TestCase
             ->assertCanSeeTableRecords($students);
     }
 
-    public function test_can_create_a_student_with_groups_and_modules(): void
+    public function test_can_create_a_student_with_groups_modules_and_colleges(): void
     {
         $groups = Group::factory()->count(2)->create();
         $modules = Module::factory()->count(2)->create();
+        $colleges = College::factory()->count(2)->create();
 
         Livewire::test(CreateStudent::class)
             ->fillForm([
@@ -55,6 +59,7 @@ class StudentResourceTest extends TestCase
                 'birth_date' => '2005-04-12',
                 'groups' => $groups->pluck('id')->all(),
                 'modules' => $modules->pluck('id')->all(),
+                'colleges' => $colleges->pluck('id')->all(),
             ])
             ->call('create')
             ->assertHasNoFormErrors();
@@ -63,6 +68,23 @@ class StudentResourceTest extends TestCase
 
         $this->assertCount(2, $student->groups);
         $this->assertCount(2, $student->modules);
+        $this->assertCount(2, $student->colleges);
+    }
+
+    public function test_colleges_relation_manager_can_attach_a_college(): void
+    {
+        $student = Student::factory()->create();
+        $college = College::factory()->create();
+
+        Livewire::test(CollegesRelationManager::class, [
+            'ownerRecord' => $student,
+            'pageClass' => EditStudent::class,
+        ])
+            ->callTableAction(AttachAction::class, data: ['recordId' => $college->id])
+            ->assertHasNoTableActionErrors()
+            ->assertCanSeeTableRecords([$college]);
+
+        $this->assertTrue($student->colleges()->whereKey($college->id)->exists());
     }
 
     public function test_create_requires_first_name_last_name_email_phone_and_birth_date(): void

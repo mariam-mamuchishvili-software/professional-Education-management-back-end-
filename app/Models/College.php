@@ -56,6 +56,11 @@ class College extends Model
         return $this->belongsToMany(Profession::class)->withTimestamps();
     }
 
+    public function students(): BelongsToMany
+    {
+        return $this->belongsToMany(Student::class, 'college_student')->withTimestamps();
+    }
+
     /**
      * Groups studying a profession taught at this college, derived from the modules its
      * teachers teach. Not a Relation instance, so it can't be eager loaded via with() —

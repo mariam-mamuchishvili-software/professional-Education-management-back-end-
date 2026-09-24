@@ -78,6 +78,12 @@ class StudentForm
                             ->multiple()
                             ->preload()
                             ->searchable(),
+
+                        Select::make('colleges')
+                            ->relationship('colleges', 'name')
+                            ->multiple()
+                            ->preload()
+                            ->searchable(),
                     ]),
             ]);
     }

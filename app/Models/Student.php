@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\ReplacesCloudinaryImageOnUpdate;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Student extends Model
 {
@@ -33,5 +34,10 @@ class Student extends Model
     public function modules()
     {
         return $this->belongsToMany(Module::class);
+    }
+
+    public function colleges(): BelongsToMany
+    {
+        return $this->belongsToMany(College::class, 'college_student')->withTimestamps();
     }
 }

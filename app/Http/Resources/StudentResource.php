@@ -26,6 +26,7 @@ class StudentResource extends JsonResource
             'updated_at' => $this->updated_at,
             'groups' => GroupResource::collection($this->whenLoaded('groups')),
             'modules' => ModuleResource::collection($this->whenLoaded('modules')),
+            'colleges' => CollegeResource::collection($this->whenLoaded('colleges')),
         ];
     }
 }

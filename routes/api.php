@@ -56,6 +56,24 @@ Route::get('teachers/{teacher}/colleges', [TeacherController::class, 'colleges']
 
 /*
 |--------------------------------------------------------------------------
+| Colleges <-> Students   (college_student)
+|--------------------------------------------------------------------------
+*/
+
+Route::get('colleges/{college}/students', [CollegeController::class, 'students'])
+    ->name('colleges.students.index');
+
+Route::post('colleges/{college}/students', [CollegeController::class, 'attachStudent'])
+    ->name('colleges.students.store');
+
+Route::delete('colleges/{college}/students/{student}', [CollegeController::class, 'detachStudent'])
+    ->name('colleges.students.destroy');
+
+Route::get('students/{student}/colleges', [StudentController::class, 'colleges'])
+    ->name('students.colleges.index');
+
+/*
+|--------------------------------------------------------------------------
 | Modules <-> Teachers   (module_teacher)
 |--------------------------------------------------------------------------
 */

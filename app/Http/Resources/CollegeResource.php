@@ -31,6 +31,7 @@ class CollegeResource extends JsonResource
             'teachers' => TeacherResource::collection($this->whenLoaded('teachers')),
             'professions' => ProfessionResource::collection($this->whenLoaded('professions')),
             'groups' => GroupResource::collection($this->whenLoaded('groups')),
+            'students' => StudentResource::collection($this->whenLoaded('students')),
             'slides' => SlideResource::collection($this->slides),
         ];
     }

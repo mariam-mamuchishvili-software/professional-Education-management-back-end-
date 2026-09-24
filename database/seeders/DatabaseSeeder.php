@@ -40,6 +40,7 @@ class DatabaseSeeder extends Seeder
         $this->attachCyclically($students, $modules, 'modules');
 
         $this->call(CollegeProfessionSeeder::class);
+        $this->call(CollegeStudentSeeder::class);
 
         $colleges->each(fn (College $college) => $this->seedSocialLinks(
             CollegeDetail::factory()->for($college, 'college')->create(),

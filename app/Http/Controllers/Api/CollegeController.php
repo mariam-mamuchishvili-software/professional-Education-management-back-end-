@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCollegeRequest;
 use App\Http\Requests\UpdateCollegeRequest;
 use App\Http\Resources\CollegeResource;
+use App\Http\Resources\StudentResource;
 use App\Http\Resources\TeacherResource;
 use App\Models\College;
+use App\Models\Student;
 use App\Models\Teacher;
 use App\Services\Cloudinary\CloudinaryUploader;
 use Illuminate\Http\Request;
@@ -136,6 +138,40 @@ class CollegeController extends Controller
     }
 
     /**
+     * Display the students belonging to the specified college.
+     */
+    public function students(College $college)
+    {
+        return StudentResource::collection($college->students);
+    }
+
+    /**
+     * Attach a student to the specified college.
+     */
+    public function attachStudent(Request $request, College $college)
+    {
+        $validated = $request->validate([
+            'student_id' => ['required', 'integer', 'exists:students,id'],
+        ]);
+
+        $college->students()->syncWithoutDetaching([$validated['student_id']]);
+
+        return StudentResource::collection($college->students);
+    }
+
+    /**
+     * Detach a student from the specified college.
+     */
+    public function detachStudent(College $college, Student $student)
+    {
+        $college->students()->detach($student);
+
+        return response()->json([
+            'message' => 'Student detached from college successfully',
+        ]);
+    }
+
+    /**
      * Allowlist tree of relation paths that may be requested via ?include=, up to 3 levels deep.
      * 'groups' isn't a native Eloquent relation on College (see College::relatedGroups()),
      * so it's excluded via self::COMPUTED_INCLUDES before being passed to with() — see
@@ -153,6 +189,7 @@ class CollegeController extends Controller
                 ],
             ],
             'groups' => [],
+            'students' => [],
         ];
     }
 

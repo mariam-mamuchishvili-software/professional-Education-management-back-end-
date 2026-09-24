@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
+use App\Http\Resources\CollegeResource;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\ModuleResource;
 use App\Http\Resources\StudentResource;
@@ -106,6 +107,14 @@ class StudentController extends Controller
     }
 
     /**
+     * Display the colleges the specified student belongs to.
+     */
+    public function colleges(Student $student)
+    {
+        return CollegeResource::collection($student->colleges);
+    }
+
+    /**
      * Allowlist tree of relation paths that may be eager loaded via ?include=, up to 3 levels deep.
      *
      * @return array<string, array<mixed>>
@@ -123,6 +132,7 @@ class StudentController extends Controller
                 'teachers' => [],
                 'professions' => [],
             ],
+            'colleges' => [],
         ];
     }
 }
