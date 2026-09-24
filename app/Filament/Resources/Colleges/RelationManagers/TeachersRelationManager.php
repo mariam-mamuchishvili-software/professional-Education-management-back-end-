@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Colleges\RelationManagers;
 
+use App\Filament\Forms\Components\CloudinaryImageUpload;
 use App\Filament\Resources\Teachers\TeacherResource;
 use App\Models\Teacher;
 use Filament\Actions\AttachAction;
@@ -40,11 +41,16 @@ class TeachersRelationManager extends RelationManager
                 TextInput::make('phone')
                     ->tel()
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(20),
 
                 TextInput::make('specialization')
                     ->required()
                     ->maxLength(255),
+
+                CloudinaryImageUpload::make('image')
+                    ->label('Profile Image')
+                    ->directory('eduhub/teachers')
+                    ->columnSpanFull(),
             ]);
     }
 

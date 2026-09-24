@@ -2,9 +2,8 @@
 
 namespace App\Filament\Resources\Colleges\Schemas;
 
+use App\Filament\Forms\Components\CloudinaryImageUpload;
 use App\Models\SocialLink;
-use App\Services\Cloudinary\CloudinaryUploader;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -12,7 +11,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class CollegeForm
 {
@@ -72,36 +70,14 @@ class CollegeForm
                                     ->searchable()
                                     ->columnSpanFull(),
 
-                                FileUpload::make('poster')
+                                CloudinaryImageUpload::make('poster')
                                     ->label('Poster')
-                                    ->image()
-                                    ->maxSize(4096)
-                                    ->imagePreviewHeight(150)
-                                    ->fetchFileInformation(false)
-                                    ->saveUploadedFileUsing(fn (TemporaryUploadedFile $file): string => app(CloudinaryUploader::class)
-                                        ->upload($file, 'eduhub/colleges'))
-                                    ->getUploadedFileUsing(fn (string $file): array => [
-                                        'name' => basename(parse_url($file, PHP_URL_PATH) ?: $file),
-                                        'size' => 0,
-                                        'type' => 'image',
-                                        'url' => $file,
-                                    ])
+                                    ->directory('eduhub/colleges')
                                     ->columnSpanFull(),
 
-                                FileUpload::make('logo')
+                                CloudinaryImageUpload::make('logo')
                                     ->label('Logo')
-                                    ->image()
-                                    ->maxSize(4096)
-                                    ->imagePreviewHeight(150)
-                                    ->fetchFileInformation(false)
-                                    ->saveUploadedFileUsing(fn (TemporaryUploadedFile $file): string => app(CloudinaryUploader::class)
-                                        ->upload($file, 'eduhub/colleges'))
-                                    ->getUploadedFileUsing(fn (string $file): array => [
-                                        'name' => basename(parse_url($file, PHP_URL_PATH) ?: $file),
-                                        'size' => 0,
-                                        'type' => 'image',
-                                        'url' => $file,
-                                    ])
+                                    ->directory('eduhub/colleges')
                                     ->columnSpanFull(),
                             ]),
                     ]),

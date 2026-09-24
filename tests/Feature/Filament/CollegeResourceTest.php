@@ -6,13 +6,16 @@ use App\Filament\Resources\Colleges\Pages\CreateCollege;
 use App\Filament\Resources\Colleges\Pages\EditCollege;
 use App\Filament\Resources\Colleges\Pages\ListColleges;
 use App\Filament\Resources\Colleges\RelationManagers\StudentsRelationManager;
+use App\Filament\Resources\Colleges\RelationManagers\TeachersRelationManager;
 use App\Models\College;
 use App\Models\Profession;
 use App\Models\Student;
+use App\Models\Teacher;
 use App\Models\User;
 use Filament\Actions\AttachAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DetachAction;
+use Filament\Actions\EditAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
@@ -218,6 +221,37 @@ class CollegeResourceTest extends TestCase
             'email' => 'poster-college@example.com',
             'poster' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/colleges/abc123.jpg',
         ]);
+    }
+
+    public function test_teachers_relation_manager_edit_uploads_the_teacher_image_to_cloudinary(): void
+    {
+        Http::fake([
+            'api.cloudinary.com/v1_1/demo-cloud/image/upload' => Http::response([
+                'secure_url' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/teachers/abc123.jpg',
+                'public_id' => 'eduhub/teachers/abc123',
+            ]),
+        ]);
+
+        $college = College::factory()->create();
+        $teacher = Teacher::factory()->create(['image' => null]);
+        $college->teachers()->attach($teacher);
+
+        Livewire::test(TeachersRelationManager::class, [
+            'ownerRecord' => $college,
+            'pageClass' => EditCollege::class,
+        ])
+            ->callTableAction(EditAction::class, $teacher, data: [
+                'image' => UploadedFile::fake()->image('teacher.jpg'),
+            ])
+            ->assertHasNoTableActionErrors();
+
+        $this->assertSame(
+            'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/teachers/abc123.jpg',
+            $teacher->refresh()->image,
+        );
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), '/image/upload')
+            && str_contains($request->body(), 'eduhub/teachers'));
     }
 
     public function test_edit_form_loads_existing_poster_without_error(): void

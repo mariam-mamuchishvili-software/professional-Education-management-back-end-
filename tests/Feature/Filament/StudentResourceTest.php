@@ -201,4 +201,48 @@ class StudentResourceTest extends TestCase
             ->assertCanSeeTableRecords([$enrolled])
             ->assertCanNotSeeTableRecords([$other]);
     }
+
+    public function test_can_create_a_student_without_an_image(): void
+    {
+        Http::fake();
+
+        Livewire::test(CreateStudent::class)
+            ->fillForm([
+                'first_name' => 'Nika',
+                'last_name' => 'Gelashvili',
+                'email' => 'no-image@example.com',
+                'phone' => '+995 555 222 333',
+                'birth_date' => '2004-02-02',
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('students', [
+            'email' => 'no-image@example.com',
+            'image' => null,
+        ]);
+
+        Http::assertNothingSent();
+    }
+
+    public function test_failed_cloudinary_upload_shows_a_form_error_and_does_not_create_the_student(): void
+    {
+        Http::fake([
+            'api.cloudinary.com/v1_1/demo-cloud/image/upload' => Http::response(['error' => ['message' => 'Invalid signature']], 401),
+        ]);
+
+        Livewire::test(CreateStudent::class)
+            ->fillForm([
+                'first_name' => 'Ana',
+                'last_name' => 'Lomidze',
+                'email' => 'failed-upload@example.com',
+                'phone' => '+995 555 777 888',
+                'birth_date' => '2005-04-12',
+                'image' => UploadedFile::fake()->image('student.jpg'),
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['image']);
+
+        $this->assertDatabaseMissing('students', ['email' => 'failed-upload@example.com']);
+    }
 }
