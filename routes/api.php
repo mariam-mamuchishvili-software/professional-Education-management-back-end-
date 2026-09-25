@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ProfessionController;
 use App\Http\Controllers\Api\StatisticsController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\TeacherController;
+use App\Http\Controllers\Api\TrainingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -35,6 +36,7 @@ Route::apiResource('professions', ProfessionController::class);
 Route::apiResource('modules', ModuleController::class);
 Route::apiResource('students', StudentController::class);
 Route::apiResource('groups', GroupController::class);
+Route::apiResource('trainings', TrainingController::class);
 
 /*
 |--------------------------------------------------------------------------

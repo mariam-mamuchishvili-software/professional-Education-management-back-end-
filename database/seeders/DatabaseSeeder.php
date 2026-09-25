@@ -12,6 +12,7 @@ use App\Models\SocialLink;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\TeacherDetail;
+use App\Models\Training;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
@@ -53,6 +54,8 @@ class DatabaseSeeder extends Seeder
         ));
 
         $colleges->each(fn (College $college) => Slide::factory(3)->for($college)->create());
+
+        Training::factory(5)->create();
     }
 
     /**
