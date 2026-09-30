@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\CollegeController;
 use App\Http\Controllers\Api\GroupController;
 use App\Http\Controllers\Api\ModuleController;
+use App\Http\Controllers\Api\ParticipantController;
+use App\Http\Controllers\Api\PresenterController;
 use App\Http\Controllers\Api\ProfessionController;
 use App\Http\Controllers\Api\StatisticsController;
 use App\Http\Controllers\Api\StudentController;
@@ -37,6 +39,8 @@ Route::apiResource('modules', ModuleController::class);
 Route::apiResource('students', StudentController::class);
 Route::apiResource('groups', GroupController::class);
 Route::apiResource('trainings', TrainingController::class);
+Route::apiResource('presenters', PresenterController::class);
+Route::apiResource('participants', ParticipantController::class);
 
 /*
 |--------------------------------------------------------------------------
