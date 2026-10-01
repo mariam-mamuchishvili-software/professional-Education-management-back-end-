@@ -6,6 +6,7 @@ use App\Models\Concerns\ReplacesCloudinaryImageOnUpdate;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Teacher extends Model
 {
@@ -32,6 +33,16 @@ class Teacher extends Model
     protected function cloudinaryImageAttributes(): array
     {
         return ['image'];
+    }
+
+    /**
+     * The user account this teacher signs in with, if one has been linked.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function colleges()

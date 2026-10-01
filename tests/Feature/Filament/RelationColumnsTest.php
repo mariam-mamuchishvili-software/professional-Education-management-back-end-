@@ -34,7 +34,7 @@ class RelationColumnsTest extends TestCase
     {
         parent::setUp();
 
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->superAdmin()->create());
     }
 
     public function test_group_profession_column_links_to_the_profession_edit_page(): void
@@ -159,6 +159,9 @@ class RelationColumnsTest extends TestCase
      */
     private function countQueriesWhileRendering(string $page): int
     {
+        // Warm up the once-per-user role and permission lookups so only per-record queries are compared.
+        Livewire::test($page);
+
         DB::flushQueryLog();
         DB::enableQueryLog();
 

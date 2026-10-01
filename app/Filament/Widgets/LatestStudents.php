@@ -12,6 +12,14 @@ class LatestStudents extends TableWidget
 {
     protected static ?int $sort = 2;
 
+    /**
+     * Shows data across the whole institution, so it is limited to administrators.
+     */
+    public static function canView(): bool
+    {
+        return auth()->user()?->isAdmin() ?? false;
+    }
+
     public function table(Table $table): Table
     {
         return $table

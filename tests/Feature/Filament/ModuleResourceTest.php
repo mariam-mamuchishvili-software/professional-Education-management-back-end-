@@ -23,7 +23,7 @@ class ModuleResourceTest extends TestCase
     {
         parent::setUp();
 
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->superAdmin()->create());
     }
 
     public function test_list_page_displays_modules(): void

@@ -24,6 +24,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(RoleSeeder::class);
+
         $colleges = College::factory(5)->create();
         $teachers = Teacher::factory(5)->create();
         $professions = Profession::factory(5)->create();
