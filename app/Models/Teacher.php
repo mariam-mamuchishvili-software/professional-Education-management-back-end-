@@ -20,6 +20,7 @@ class Teacher extends Model
         'phone',
         'specialization',
         'image',
+        'user_id',
     ];
 
     /**

@@ -10,6 +10,7 @@ use App\Models\Module;
 use App\Models\Teacher;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
+use Filament\Forms\Components\Select;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
@@ -116,6 +117,45 @@ class TeacherResourceTest extends TestCase
             'id' => $teacher->id,
             'specialization' => 'Updated Specialization',
         ]);
+    }
+
+    public function test_can_link_a_user_account_to_a_teacher(): void
+    {
+        $teacher = Teacher::factory()->create();
+        $user = User::factory()->teacher()->create();
+
+        Livewire::test(EditTeacher::class, ['record' => $teacher->getRouteKey()])
+            ->fillForm(['user_id' => $user->id])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertTrue($teacher->fresh()->user->is($user));
+    }
+
+    public function test_cannot_link_a_user_already_linked_to_another_teacher(): void
+    {
+        $user = User::factory()->teacher()->create();
+        Teacher::factory()->for($user)->create();
+        $teacher = Teacher::factory()->create();
+
+        Livewire::test(EditTeacher::class, ['record' => $teacher->getRouteKey()])
+            ->assertFormFieldExists('user_id', fn (Select $field): bool => ! array_key_exists($user->id, $field->getOptions()))
+            ->fillForm(['user_id' => $user->id])
+            ->call('save')
+            ->assertHasFormErrors(['user_id']);
+
+        $this->assertNull($teacher->fresh()->user_id);
+    }
+
+    public function test_create_form_offers_only_users_without_a_teacher_profile(): void
+    {
+        $linkedUser = User::factory()->create();
+        Teacher::factory()->for($linkedUser)->create();
+        $freeUser = User::factory()->create();
+
+        Livewire::test(CreateTeacher::class)
+            ->assertFormFieldExists('user_id', fn (Select $field): bool => array_key_exists($freeUser->id, $field->getOptions())
+                && ! array_key_exists($linkedUser->id, $field->getOptions()));
     }
 
     public function test_can_delete_a_teacher(): void

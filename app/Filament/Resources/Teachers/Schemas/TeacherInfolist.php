@@ -40,6 +40,13 @@ class TeacherInfolist
                             ]),
                     ]),
 
+                Section::make('Panel Access')
+                    ->schema([
+                        TextEntry::make('user.email')
+                            ->label('User account')
+                            ->placeholder('Not linked'),
+                    ]),
+
                 Section::make('Profile & Social Links')
                     ->schema([
                         TextEntry::make('detail.biography')
