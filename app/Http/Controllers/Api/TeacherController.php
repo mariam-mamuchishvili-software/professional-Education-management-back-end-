@@ -54,11 +54,13 @@ class TeacherController extends Controller
      */
     public function show(Request $request, int $id)
     {
-        $teacher = Teacher::with([...$this->resolveIncludes($request, $this->allowedIncludes()), 'detail.socialLinks'])->find($id);
+        $teacher = Teacher::find($id);
 
         if (! $teacher) {
             return response()->json(['message' => 'Teacher not found'], 404);
         }
+
+        $teacher->load([...$this->resolveIncludes($request, $this->allowedShowIncludes($request, $teacher)), 'detail.socialLinks']);
 
         return new TeacherResource($teacher);
     }
@@ -131,6 +133,27 @@ class TeacherController extends Controller
         return response()->json([
             'message' => 'Module detached from teacher successfully',
         ]);
+    }
+
+    /**
+     * The include allowlist for a single teacher. Experience and qualification records are
+     * private, so they are only includable for an administrator or the teacher themselves.
+     * This route is public, so the optional Sanctum user is checked directly.
+     *
+     * @return array<string, array<mixed>>
+     */
+    private function allowedShowIncludes(Request $request, Teacher $teacher): array
+    {
+        if (! $request->user('sanctum')?->can('view', $teacher)) {
+            return $this->allowedIncludes();
+        }
+
+        return [
+            ...$this->allowedIncludes(),
+            'workExperiences' => [],
+            'educations' => [],
+            'trainings' => [],
+        ];
     }
 
     /**

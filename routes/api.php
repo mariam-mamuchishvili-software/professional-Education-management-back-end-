@@ -9,6 +9,9 @@ use App\Http\Controllers\Api\ProfessionController;
 use App\Http\Controllers\Api\StatisticsController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\TeacherController;
+use App\Http\Controllers\Api\TeacherEducationController;
+use App\Http\Controllers\Api\TeacherTrainingController;
+use App\Http\Controllers\Api\TeacherWorkExperienceController;
 use App\Http\Controllers\Api\TrainingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -149,3 +152,18 @@ Route::get('students/{student}/groups', [StudentController::class, 'groups'])
 
 Route::get('students/{student}/modules', [StudentController::class, 'modules'])
     ->name('students.modules.index');
+
+/*
+|--------------------------------------------------------------------------
+| Experience & Qualifications   (signed-in teacher's own records)
+|--------------------------------------------------------------------------
+| The teacher is always resolved from the authenticated user. Teachers may
+| only see and change their own records; administrators may see and change
+| any record by id.
+*/
+
+Route::middleware('auth:sanctum')->prefix('me')->name('me.')->group(function () {
+    Route::apiResource('work-experiences', TeacherWorkExperienceController::class);
+    Route::apiResource('educations', TeacherEducationController::class);
+    Route::apiResource('trainings', TeacherTrainingController::class);
+});

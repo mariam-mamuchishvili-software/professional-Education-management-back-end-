@@ -2,10 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Teacher;
 use Illuminate\Http\Request;
 
 abstract class Controller
 {
+    /**
+     * The teacher profile linked to the signed-in user. Teacher-owned data is always attached
+     * to this profile rather than to any teacher id the client sends.
+     */
+    protected function authenticatedTeacher(Request $request): Teacher
+    {
+        $teacher = $request->user()?->teacher;
+
+        abort_if($teacher === null, 403, 'No teacher profile is linked to this account.');
+
+        return $teacher;
+    }
+
     /**
      * Resolve which relations to eager load from the request's "include" query parameter.
      *

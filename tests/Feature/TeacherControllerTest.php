@@ -7,7 +7,12 @@ use App\Models\Group;
 use App\Models\Module;
 use App\Models\Profession;
 use App\Models\Teacher;
+use App\Models\TeacherEducation;
+use App\Models\TeacherTraining;
+use App\Models\TeacherWorkExperience;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class TeacherControllerTest extends TestCase
@@ -201,5 +206,70 @@ class TeacherControllerTest extends TestCase
         $this->assertDatabaseMissing('teachers', [
             'id' => $teacher->id,
         ]);
+    }
+
+    public function test_show_includes_experience_and_qualifications_for_the_teacher_themselves(): void
+    {
+        $user = User::factory()->teacher()->create();
+        $teacher = Teacher::factory()->for($user)->create();
+        $workExperience = TeacherWorkExperience::factory()->for($teacher)->create();
+        $education = TeacherEducation::factory()->for($teacher)->create();
+        $training = TeacherTraining::factory()->for($teacher)->create();
+
+        Sanctum::actingAs($user);
+
+        $this->getJson("/api/teachers/{$teacher->id}?include=workExperiences,educations,trainings")
+            ->assertOk()
+            ->assertJsonPath('data.work_experiences.0.id', $workExperience->id)
+            ->assertJsonPath('data.educations.0.id', $education->id)
+            ->assertJsonPath('data.trainings.0.id', $training->id);
+    }
+
+    public function test_show_includes_experience_and_qualifications_for_an_admin(): void
+    {
+        $teacher = Teacher::factory()->create();
+        TeacherWorkExperience::factory()->for($teacher)->create();
+
+        Sanctum::actingAs(User::factory()->collegeAdmin()->create());
+
+        $this->getJson("/api/teachers/{$teacher->id}?include=workExperiences")
+            ->assertOk()
+            ->assertJsonCount(1, 'data.work_experiences');
+    }
+
+    public function test_show_ignores_experience_and_qualification_includes_for_guests_and_other_teachers(): void
+    {
+        $teacher = Teacher::factory()->create();
+        TeacherWorkExperience::factory()->for($teacher)->create();
+        TeacherEducation::factory()->for($teacher)->create();
+        TeacherTraining::factory()->for($teacher)->create();
+
+        $this->getJson("/api/teachers/{$teacher->id}?include=workExperiences,educations,trainings")
+            ->assertOk()
+            ->assertJsonMissingPath('data.work_experiences')
+            ->assertJsonMissingPath('data.educations')
+            ->assertJsonMissingPath('data.trainings');
+
+        $otherUser = User::factory()->teacher()->create();
+        Teacher::factory()->for($otherUser)->create();
+        Sanctum::actingAs($otherUser);
+
+        $this->getJson("/api/teachers/{$teacher->id}?include=workExperiences,educations,trainings")
+            ->assertOk()
+            ->assertJsonMissingPath('data.work_experiences')
+            ->assertJsonMissingPath('data.educations')
+            ->assertJsonMissingPath('data.trainings');
+    }
+
+    public function test_index_ignores_experience_and_qualification_includes(): void
+    {
+        $teacher = Teacher::factory()->create();
+        TeacherWorkExperience::factory()->for($teacher)->create();
+
+        Sanctum::actingAs(User::factory()->superAdmin()->create());
+
+        $this->getJson('/api/teachers?include=workExperiences')
+            ->assertOk()
+            ->assertJsonMissingPath('data.0.work_experiences');
     }
 }

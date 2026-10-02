@@ -7,7 +7,10 @@ use App\Filament\Resources\Teachers\Pages\EditTeacher;
 use App\Filament\Resources\Teachers\Pages\ListTeachers;
 use App\Filament\Resources\Teachers\Pages\ViewTeacher;
 use App\Filament\Resources\Teachers\RelationManagers\CollegesRelationManager;
+use App\Filament\Resources\Teachers\RelationManagers\EducationsRelationManager;
 use App\Filament\Resources\Teachers\RelationManagers\ModulesRelationManager;
+use App\Filament\Resources\Teachers\RelationManagers\TrainingsRelationManager;
+use App\Filament\Resources\Teachers\RelationManagers\WorkExperiencesRelationManager;
 use App\Filament\Resources\Teachers\Schemas\TeacherForm;
 use App\Filament\Resources\Teachers\Schemas\TeacherInfolist;
 use App\Filament\Resources\Teachers\Tables\TeachersTable;
@@ -49,6 +52,9 @@ class TeacherResource extends Resource
         return [
             CollegesRelationManager::class,
             ModulesRelationManager::class,
+            WorkExperiencesRelationManager::class,
+            EducationsRelationManager::class,
+            TrainingsRelationManager::class,
         ];
     }
 

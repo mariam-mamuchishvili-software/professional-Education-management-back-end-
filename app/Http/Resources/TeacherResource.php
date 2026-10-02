@@ -27,6 +27,9 @@ class TeacherResource extends JsonResource
             'detail' => $this->whenLoaded('detail', fn () => $this->detail ? new TeacherDetailResource($this->detail) : null),
             'colleges' => CollegeResource::collection($this->whenLoaded('colleges')),
             'modules' => ModuleResource::collection($this->whenLoaded('modules')),
+            'work_experiences' => TeacherWorkExperienceResource::collection($this->whenLoaded('workExperiences')),
+            'educations' => TeacherEducationResource::collection($this->whenLoaded('educations')),
+            'trainings' => TeacherTrainingResource::collection($this->whenLoaded('trainings')),
         ];
     }
 }
