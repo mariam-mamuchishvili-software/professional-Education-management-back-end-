@@ -17,6 +17,7 @@ class TeacherWorkExperience extends Model
     ];
 
     protected $fillable = [
+        'teacher_id',
         'organization',
         'position',
         'start_date',

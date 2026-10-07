@@ -208,57 +208,33 @@ class TeacherControllerTest extends TestCase
         ]);
     }
 
-    public function test_show_includes_experience_and_qualifications_for_the_teacher_themselves(): void
+    public function test_show_returns_work_experiences_educations_and_trainings_without_an_include(): void
     {
-        $user = User::factory()->teacher()->create();
-        $teacher = Teacher::factory()->for($user)->create();
-        $workExperience = TeacherWorkExperience::factory()->for($teacher)->create();
+        $teacher = Teacher::factory()->create();
+        $olderWorkExperience = TeacherWorkExperience::factory()->for($teacher)->create(['start_date' => '2018-01-01']);
+        $newerWorkExperience = TeacherWorkExperience::factory()->for($teacher)->create(['start_date' => '2022-01-01']);
         $education = TeacherEducation::factory()->for($teacher)->create();
         $training = TeacherTraining::factory()->for($teacher)->create();
+        TeacherWorkExperience::factory()->create();
 
-        Sanctum::actingAs($user);
-
-        $this->getJson("/api/teachers/{$teacher->id}?include=workExperiences,educations,trainings")
+        $this->getJson("/api/teachers/{$teacher->id}")
             ->assertOk()
-            ->assertJsonPath('data.work_experiences.0.id', $workExperience->id)
+            ->assertJsonCount(2, 'data.work_experiences')
+            ->assertJsonPath('data.work_experiences.0.id', $newerWorkExperience->id)
+            ->assertJsonPath('data.work_experiences.1.id', $olderWorkExperience->id)
             ->assertJsonPath('data.educations.0.id', $education->id)
             ->assertJsonPath('data.trainings.0.id', $training->id);
     }
 
-    public function test_show_includes_experience_and_qualifications_for_an_admin(): void
+    public function test_show_returns_empty_lists_when_the_teacher_has_no_experience_or_qualifications(): void
     {
         $teacher = Teacher::factory()->create();
-        TeacherWorkExperience::factory()->for($teacher)->create();
 
-        Sanctum::actingAs(User::factory()->collegeAdmin()->create());
-
-        $this->getJson("/api/teachers/{$teacher->id}?include=workExperiences")
+        $this->getJson("/api/teachers/{$teacher->id}")
             ->assertOk()
-            ->assertJsonCount(1, 'data.work_experiences');
-    }
-
-    public function test_show_ignores_experience_and_qualification_includes_for_guests_and_other_teachers(): void
-    {
-        $teacher = Teacher::factory()->create();
-        TeacherWorkExperience::factory()->for($teacher)->create();
-        TeacherEducation::factory()->for($teacher)->create();
-        TeacherTraining::factory()->for($teacher)->create();
-
-        $this->getJson("/api/teachers/{$teacher->id}?include=workExperiences,educations,trainings")
-            ->assertOk()
-            ->assertJsonMissingPath('data.work_experiences')
-            ->assertJsonMissingPath('data.educations')
-            ->assertJsonMissingPath('data.trainings');
-
-        $otherUser = User::factory()->teacher()->create();
-        Teacher::factory()->for($otherUser)->create();
-        Sanctum::actingAs($otherUser);
-
-        $this->getJson("/api/teachers/{$teacher->id}?include=workExperiences,educations,trainings")
-            ->assertOk()
-            ->assertJsonMissingPath('data.work_experiences')
-            ->assertJsonMissingPath('data.educations')
-            ->assertJsonMissingPath('data.trainings');
+            ->assertJsonPath('data.work_experiences', [])
+            ->assertJsonPath('data.educations', [])
+            ->assertJsonPath('data.trainings', []);
     }
 
     public function test_index_ignores_experience_and_qualification_includes(): void
