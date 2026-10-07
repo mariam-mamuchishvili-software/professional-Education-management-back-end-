@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 
 class StoreTeacherRequest extends FormRequest
 {
@@ -28,6 +29,7 @@ class StoreTeacherRequest extends FormRequest
             'email' => ['required', 'email', 'unique:teachers,email'],
             'phone' => ['required', 'string', 'max:20'],
             'specialization' => ['required', 'string', 'max:255'],
+            'password' => ['required', 'string', Password::defaults()],
             'image' => ['nullable', 'image', 'max:4096'],
         ];
     }

@@ -62,9 +62,4 @@ class UserFactory extends Factory
     {
         return $this->withRole(UserRole::CollegeAdmin);
     }
-
-    public function teacher(): static
-    {
-        return $this->withRole(UserRole::Teacher);
-    }
 }

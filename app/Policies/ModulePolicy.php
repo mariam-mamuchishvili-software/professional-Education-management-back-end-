@@ -12,7 +12,7 @@ class ModulePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin() || $user->isRestrictedToOwnTeachingData();
+        return $user->isAdmin();
     }
 
     /**
@@ -20,9 +20,7 @@ class ModulePolicy
      */
     public function view(User $user, Module $module): bool
     {
-        return $user->isAdmin()
-            || ($user->isRestrictedToOwnTeachingData()
-                && Module::query()->assignedTo($user->teacher)->whereKey($module->getKey())->exists());
+        return $user->isAdmin();
     }
 
     /**

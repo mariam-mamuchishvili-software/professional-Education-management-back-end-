@@ -9,7 +9,6 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -38,21 +37,11 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
-     * The teacher profile linked to this account, if the user is a teacher.
-     *
-     * @return HasOne<Teacher, $this>
-     */
-    public function teacher(): HasOne
-    {
-        return $this->hasOne(Teacher::class);
-    }
-
-    /**
      * Only users holding one of the application roles may enter the admin panel.
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->hasAnyRole(UserRole::cases());
+        return $panel->getId() === 'admin' && $this->hasAnyRole(UserRole::cases());
     }
 
     public function isSuperAdmin(): bool
@@ -63,14 +52,5 @@ class User extends Authenticatable implements FilamentUser
     public function isAdmin(): bool
     {
         return $this->hasAnyRole(UserRole::administrative());
-    }
-
-    /**
-     * A teacher without any administrative role, whose data access is limited to
-     * the modules, colleges and groups assigned to their own teacher profile.
-     */
-    public function isRestrictedToOwnTeachingData(): bool
-    {
-        return $this->hasRole(UserRole::Teacher) && ! $this->isAdmin();
     }
 }

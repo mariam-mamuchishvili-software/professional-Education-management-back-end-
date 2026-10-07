@@ -12,7 +12,7 @@ class GroupPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin() || $user->isRestrictedToOwnTeachingData();
+        return $user->isAdmin();
     }
 
     /**
@@ -20,9 +20,7 @@ class GroupPolicy
      */
     public function view(User $user, Group $group): bool
     {
-        return $user->isAdmin()
-            || ($user->isRestrictedToOwnTeachingData()
-                && Group::query()->assignedTo($user->teacher)->whereKey($group->getKey())->exists());
+        return $user->isAdmin();
     }
 
     /**

@@ -19,13 +19,13 @@ class TeacherWorkExperienceControllerTest extends TestCase
         $this->getJson('/api/me/work-experiences')->assertUnauthorized();
     }
 
-    public function test_user_without_a_teacher_profile_cannot_list_or_create_work_experiences(): void
+    public function test_a_user_account_cannot_list_or_create_work_experiences(): void
     {
         Sanctum::actingAs(User::factory()->create());
 
         $this->getJson('/api/me/work-experiences')
             ->assertForbidden()
-            ->assertJsonPath('message', 'No teacher profile is linked to this account.');
+            ->assertJsonPath('message', 'Only a signed-in teacher can manage their own records.');
 
         $this->postJson('/api/me/work-experiences', $this->validPayload())->assertForbidden();
 
@@ -34,11 +34,11 @@ class TeacherWorkExperienceControllerTest extends TestCase
 
     public function test_index_lists_only_the_signed_in_teachers_work_experiences(): void
     {
-        [$user, $teacher] = $this->teacherUser();
+        $teacher = Teacher::factory()->create();
         $own = TeacherWorkExperience::factory()->for($teacher)->create();
         TeacherWorkExperience::factory()->create();
 
-        Sanctum::actingAs($user);
+        Sanctum::actingAs($teacher);
 
         $this->getJson('/api/me/work-experiences')
             ->assertOk()
@@ -48,10 +48,10 @@ class TeacherWorkExperienceControllerTest extends TestCase
 
     public function test_store_creates_a_work_experience_for_the_signed_in_teacher_ignoring_a_sent_teacher_id(): void
     {
-        [$user, $teacher] = $this->teacherUser();
+        $teacher = Teacher::factory()->create();
         $otherTeacher = Teacher::factory()->create();
 
-        Sanctum::actingAs($user);
+        Sanctum::actingAs($teacher);
 
         $response = $this->postJson('/api/me/work-experiences', [
             ...$this->validPayload(),
@@ -75,7 +75,7 @@ class TeacherWorkExperienceControllerTest extends TestCase
 
     public function test_store_requires_organization_position_and_start_date(): void
     {
-        Sanctum::actingAs($this->teacherUser()[0]);
+        Sanctum::actingAs(Teacher::factory()->create());
 
         $this->postJson('/api/me/work-experiences', [])
             ->assertUnprocessable()
@@ -84,7 +84,7 @@ class TeacherWorkExperienceControllerTest extends TestCase
 
     public function test_store_rejects_an_end_date_before_the_start_date(): void
     {
-        Sanctum::actingAs($this->teacherUser()[0]);
+        Sanctum::actingAs(Teacher::factory()->create());
 
         $this->postJson('/api/me/work-experiences', [...$this->validPayload(), 'end_date' => '2019-01-01'])
             ->assertUnprocessable()
@@ -93,7 +93,7 @@ class TeacherWorkExperienceControllerTest extends TestCase
 
     public function test_store_rejects_an_end_date_for_a_current_position(): void
     {
-        Sanctum::actingAs($this->teacherUser()[0]);
+        Sanctum::actingAs(Teacher::factory()->create());
 
         $this->postJson('/api/me/work-experiences', [...$this->validPayload(), 'is_current' => true])
             ->assertUnprocessable()
@@ -102,10 +102,10 @@ class TeacherWorkExperienceControllerTest extends TestCase
 
     public function test_update_changes_the_teachers_own_work_experience(): void
     {
-        [$user, $teacher] = $this->teacherUser();
+        $teacher = Teacher::factory()->create();
         $workExperience = TeacherWorkExperience::factory()->for($teacher)->create(['position' => 'Assistant']);
 
-        Sanctum::actingAs($user);
+        Sanctum::actingAs($teacher);
 
         $this->patchJson("/api/me/work-experiences/{$workExperience->id}", ['position' => 'Head of Department'])
             ->assertOk()
@@ -116,10 +116,10 @@ class TeacherWorkExperienceControllerTest extends TestCase
 
     public function test_marking_a_position_as_current_clears_its_end_date(): void
     {
-        [$user, $teacher] = $this->teacherUser();
+        $teacher = Teacher::factory()->create();
         $workExperience = TeacherWorkExperience::factory()->for($teacher)->create();
 
-        Sanctum::actingAs($user);
+        Sanctum::actingAs($teacher);
 
         $this->patchJson("/api/me/work-experiences/{$workExperience->id}", ['is_current' => true])
             ->assertOk()
@@ -129,10 +129,10 @@ class TeacherWorkExperienceControllerTest extends TestCase
 
     public function test_partial_update_compares_the_end_date_with_the_stored_start_date(): void
     {
-        [$user, $teacher] = $this->teacherUser();
+        $teacher = Teacher::factory()->create();
         $workExperience = TeacherWorkExperience::factory()->for($teacher)->create(['start_date' => '2020-01-01']);
 
-        Sanctum::actingAs($user);
+        Sanctum::actingAs($teacher);
 
         $this->patchJson("/api/me/work-experiences/{$workExperience->id}", ['end_date' => '2019-12-31'])
             ->assertUnprocessable()
@@ -141,10 +141,10 @@ class TeacherWorkExperienceControllerTest extends TestCase
 
     public function test_destroy_deletes_the_teachers_own_work_experience(): void
     {
-        [$user, $teacher] = $this->teacherUser();
+        $teacher = Teacher::factory()->create();
         $workExperience = TeacherWorkExperience::factory()->for($teacher)->create();
 
-        Sanctum::actingAs($user);
+        Sanctum::actingAs($teacher);
 
         $this->deleteJson("/api/me/work-experiences/{$workExperience->id}")
             ->assertOk()
@@ -170,7 +170,7 @@ class TeacherWorkExperienceControllerTest extends TestCase
     {
         $workExperience = TeacherWorkExperience::factory()->create(['position' => 'Original']);
 
-        Sanctum::actingAs($this->teacherUser()[0]);
+        Sanctum::actingAs(Teacher::factory()->create());
 
         $this->{$method}("/api/me/work-experiences/{$workExperience->id}", ['position' => 'Hijacked'])
             ->assertNotFound();
@@ -210,17 +210,5 @@ class TeacherWorkExperienceControllerTest extends TestCase
             'end_date' => '2023-06-30',
             'description' => 'Curriculum development.',
         ];
-    }
-
-    /**
-     * A user with the teacher role linked to a teacher profile.
-     *
-     * @return array{User, Teacher}
-     */
-    private function teacherUser(): array
-    {
-        $user = User::factory()->teacher()->create();
-
-        return [$user, Teacher::factory()->for($user)->create()];
     }
 }

@@ -33,7 +33,7 @@ class UserResourceTest extends TestCase
 
     public function test_list_page_displays_users(): void
     {
-        $users = User::factory()->count(2)->teacher()->create();
+        $users = User::factory()->count(2)->collegeAdmin()->create();
 
         Livewire::test(ListUsers::class)
             ->assertCanSeeTableRecords($users);
@@ -41,21 +41,21 @@ class UserResourceTest extends TestCase
 
     public function test_can_create_a_user_with_a_role(): void
     {
-        $teacherRole = Role::findOrCreate(UserRole::Teacher->value, 'web');
+        $collegeAdminRole = Role::findOrCreate(UserRole::CollegeAdmin->value, 'web');
 
         Livewire::test(CreateUser::class)
             ->fillForm([
-                'name' => 'Nino Teacher',
+                'name' => 'Nino Admin',
                 'email' => 'nino@example.com',
                 'password' => 'secret-password',
-                'roles' => [$teacherRole->id],
+                'roles' => [$collegeAdminRole->id],
             ])
             ->call('create')
             ->assertHasNoFormErrors();
 
         $user = User::query()->where('email', 'nino@example.com')->firstOrFail();
 
-        $this->assertTrue($user->hasRole(UserRole::Teacher));
+        $this->assertTrue($user->hasRole(UserRole::CollegeAdmin));
         $this->assertTrue(Hash::check('secret-password', $user->password));
     }
 
@@ -108,20 +108,22 @@ class UserResourceTest extends TestCase
     }
 
     /**
-     * @return array<string, array{UserRole}>
+     * @return array<string, array{?UserRole}>
      */
     public static function nonSuperAdminRoles(): array
     {
         return [
             'college admin' => [UserRole::CollegeAdmin],
-            'teacher' => [UserRole::Teacher],
+            'no role' => [null],
         ];
     }
 
     #[DataProvider('nonSuperAdminRoles')]
-    public function test_only_super_admins_can_manage_users(UserRole $role): void
+    public function test_only_super_admins_can_manage_users(?UserRole $role): void
     {
-        $this->actingAs(User::factory()->withRole($role)->create())
+        $user = $role === null ? User::factory()->create() : User::factory()->withRole($role)->create();
+
+        $this->actingAs($user)
             ->get(UserResource::getUrl('index'))
             ->assertForbidden();
     }

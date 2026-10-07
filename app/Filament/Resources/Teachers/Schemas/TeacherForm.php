@@ -4,15 +4,17 @@ namespace App\Filament\Resources\Teachers\Schemas;
 
 use App\Filament\Forms\Components\CloudinaryImageUpload;
 use App\Models\SocialLink;
-use App\Models\Teacher;
+use App\Services\Passwords\PassphraseGenerator;
+use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Support\Icons\Heroicon;
 
 class TeacherForm
 {
@@ -38,6 +40,25 @@ class TeacherForm
                                     ->required()
                                     ->maxLength(255)
                                     ->unique(ignoreRecord: true),
+
+                                TextInput::make('password')
+                                    ->password()
+                                    ->revealable()
+                                    ->copyable()
+                                    ->default(fn (): string => app(PassphraseGenerator::class)->generate())
+                                    ->suffixAction(
+                                        Action::make('generatePassphrase')
+                                            ->label('Generate new passphrase')
+                                            ->icon(Heroicon::OutlinedArrowPath)
+                                            ->action(fn (Set $set): mixed => $set('password', app(PassphraseGenerator::class)->generate())),
+                                    )
+                                    ->minLength(8)
+                                    ->maxLength(255)
+                                    ->required(fn (string $operation): bool => $operation === 'create')
+                                    ->dehydrated(fn (?string $state): bool => filled($state))
+                                    ->helperText(fn (string $operation): string => $operation === 'create'
+                                        ? 'A passphrase is generated automatically. Copy it and give it to the teacher.'
+                                        : 'Leave empty to keep the current password, or generate a new passphrase.'),
 
                                 TextInput::make('phone')
                                     ->tel()
@@ -85,25 +106,6 @@ class TeacherForm
                             ->defaultItems(0)
                             ->addActionLabel('Add social link')
                             ->columnSpanFull(),
-                    ]),
-
-                Section::make('Panel Access')
-                    ->description('Link a user account so this teacher can sign in and see their own modules, colleges and groups.')
-                    ->schema([
-                        Select::make('user_id')
-                            ->label('User account')
-                            ->relationship(
-                                'user',
-                                'email',
-                                modifyQueryUsing: fn (Builder $query, ?Teacher $record): Builder => $query->whereDoesntHave(
-                                    'teacher',
-                                    fn (Builder $query) => $query->whereKeyNot($record?->getKey()),
-                                ),
-                            )
-                            ->searchable()
-                            ->preload()
-                            ->unique(ignoreRecord: true)
-                            ->helperText('Only users not linked to another teacher are listed. The user also needs the Teacher role.'),
                     ]),
 
                 Section::make('Relationships')

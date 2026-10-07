@@ -20,11 +20,11 @@ class TeacherEducationControllerTest extends TestCase
 
     public function test_index_lists_only_the_signed_in_teachers_educations(): void
     {
-        [$user, $teacher] = $this->teacherUser();
+        $teacher = Teacher::factory()->create();
         $own = TeacherEducation::factory()->for($teacher)->create();
         TeacherEducation::factory()->create();
 
-        Sanctum::actingAs($user);
+        Sanctum::actingAs($teacher);
 
         $this->getJson('/api/me/educations')
             ->assertOk()
@@ -34,9 +34,9 @@ class TeacherEducationControllerTest extends TestCase
 
     public function test_store_creates_an_education_for_the_signed_in_teacher(): void
     {
-        [$user, $teacher] = $this->teacherUser();
+        $teacher = Teacher::factory()->create();
 
-        Sanctum::actingAs($user);
+        Sanctum::actingAs($teacher);
 
         $this->postJson('/api/me/educations', [
             'institution' => 'Tbilisi State University',
@@ -59,7 +59,7 @@ class TeacherEducationControllerTest extends TestCase
 
     public function test_store_accepts_an_education_without_dates(): void
     {
-        Sanctum::actingAs($this->teacherUser()[0]);
+        Sanctum::actingAs(Teacher::factory()->create());
 
         $this->postJson('/api/me/educations', [
             'institution' => 'Private Academy',
@@ -73,7 +73,7 @@ class TeacherEducationControllerTest extends TestCase
 
     public function test_store_requires_institution_degree_and_specialization(): void
     {
-        Sanctum::actingAs($this->teacherUser()[0]);
+        Sanctum::actingAs(Teacher::factory()->create());
 
         $this->postJson('/api/me/educations', [])
             ->assertUnprocessable()
@@ -82,7 +82,7 @@ class TeacherEducationControllerTest extends TestCase
 
     public function test_store_rejects_an_end_date_before_the_start_date(): void
     {
-        Sanctum::actingAs($this->teacherUser()[0]);
+        Sanctum::actingAs(Teacher::factory()->create());
 
         $this->postJson('/api/me/educations', [
             'institution' => 'Tbilisi State University',
@@ -97,10 +97,10 @@ class TeacherEducationControllerTest extends TestCase
 
     public function test_update_changes_the_teachers_own_education(): void
     {
-        [$user, $teacher] = $this->teacherUser();
+        $teacher = Teacher::factory()->create();
         $education = TeacherEducation::factory()->for($teacher)->create(['degree' => 'Bachelor']);
 
-        Sanctum::actingAs($user);
+        Sanctum::actingAs($teacher);
 
         $this->patchJson("/api/me/educations/{$education->id}", ['degree' => 'Master'])
             ->assertOk()
@@ -111,10 +111,10 @@ class TeacherEducationControllerTest extends TestCase
 
     public function test_destroy_deletes_the_teachers_own_education(): void
     {
-        [$user, $teacher] = $this->teacherUser();
+        $teacher = Teacher::factory()->create();
         $education = TeacherEducation::factory()->for($teacher)->create();
 
-        Sanctum::actingAs($user);
+        Sanctum::actingAs($teacher);
 
         $this->deleteJson("/api/me/educations/{$education->id}")
             ->assertOk()
@@ -127,7 +127,7 @@ class TeacherEducationControllerTest extends TestCase
     {
         $education = TeacherEducation::factory()->create(['degree' => 'Original']);
 
-        Sanctum::actingAs($this->teacherUser()[0]);
+        Sanctum::actingAs(Teacher::factory()->create());
 
         $this->getJson("/api/me/educations/{$education->id}")->assertNotFound();
         $this->patchJson("/api/me/educations/{$education->id}", ['degree' => 'Hijacked'])->assertNotFound();
@@ -145,17 +145,5 @@ class TeacherEducationControllerTest extends TestCase
         $this->patchJson("/api/me/educations/{$education->id}", ['degree' => 'Doctorate'])
             ->assertOk()
             ->assertJsonPath('data.degree', 'Doctorate');
-    }
-
-    /**
-     * A user with the teacher role linked to a teacher profile.
-     *
-     * @return array{User, Teacher}
-     */
-    private function teacherUser(): array
-    {
-        $user = User::factory()->teacher()->create();
-
-        return [$user, Teacher::factory()->for($user)->create()];
     }
 }

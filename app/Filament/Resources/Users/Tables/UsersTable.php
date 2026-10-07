@@ -16,7 +16,7 @@ class UsersTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['roles', 'teacher']))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with('roles'))
             ->columns([
                 TextColumn::make('name')
                     ->searchable()
@@ -30,10 +30,6 @@ class UsersTable
                     ->label('Roles')
                     ->badge()
                     ->placeholder('No role'),
-
-                TextColumn::make('teacher.full_name')
-                    ->label('Teacher profile')
-                    ->placeholder('—'),
 
                 TextColumn::make('created_at')
                     ->dateTime()

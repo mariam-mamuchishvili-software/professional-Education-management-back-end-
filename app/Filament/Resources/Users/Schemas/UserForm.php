@@ -61,7 +61,6 @@ class UserForm
         return match (UserRole::tryFrom($name)) {
             UserRole::SuperAdmin => 'Super admin',
             UserRole::CollegeAdmin => 'College admin',
-            UserRole::Teacher => 'Teacher',
             null => $name,
         };
     }

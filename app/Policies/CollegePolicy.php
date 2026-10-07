@@ -12,7 +12,7 @@ class CollegePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin() || $user->isRestrictedToOwnTeachingData();
+        return $user->isAdmin();
     }
 
     /**
@@ -20,9 +20,7 @@ class CollegePolicy
      */
     public function view(User $user, College $college): bool
     {
-        return $user->isAdmin()
-            || ($user->isRestrictedToOwnTeachingData()
-                && College::query()->assignedTo($user->teacher)->whereKey($college->getKey())->exists());
+        return $user->isAdmin();
     }
 
     /**

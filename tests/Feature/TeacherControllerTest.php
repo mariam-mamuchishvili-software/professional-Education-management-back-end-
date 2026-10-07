@@ -12,6 +12,7 @@ use App\Models\TeacherTraining;
 use App\Models\TeacherWorkExperience;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -158,16 +159,53 @@ class TeacherControllerTest extends TestCase
             'email' => 'teacher@example.com',
             'phone' => '+995 555 123 456',
             'specialization' => 'Mathematics',
+            'password' => 'secret-password',
         ];
 
         $response = $this->postJson('/api/teachers', $data);
 
         $response->assertStatus(201)
-            ->assertJsonPath('data.first_name', 'Nino');
+            ->assertJsonPath('data.first_name', 'Nino')
+            ->assertJsonMissingPath('data.password');
 
-        $this->assertDatabaseHas('teachers', [
+        $teacher = Teacher::where('email', 'teacher@example.com')->firstOrFail();
+
+        $this->assertTrue(Hash::check('secret-password', $teacher->password));
+        $this->assertNotNull($teacher->email_verified_at);
+    }
+
+    public function test_store_requires_a_password(): void
+    {
+        $this->postJson('/api/teachers', [
+            'first_name' => 'Nino',
+            'last_name' => 'Beridze',
             'email' => 'teacher@example.com',
-        ]);
+            'phone' => '+995 555 123 456',
+            'specialization' => 'Mathematics',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('password');
+    }
+
+    public function test_update_changes_the_password_only_when_given(): void
+    {
+        $teacher = Teacher::factory()->create();
+
+        $this->putJson("/api/teachers/{$teacher->id}", ['first_name' => 'Updated'])->assertOk();
+        $this->assertTrue(Hash::check('password', $teacher->fresh()->password));
+
+        $this->putJson("/api/teachers/{$teacher->id}", ['password' => 'new-secret-password'])->assertOk();
+        $this->assertTrue(Hash::check('new-secret-password', $teacher->fresh()->password));
+    }
+
+    public function test_show_returns_email_verified_at_but_never_the_password(): void
+    {
+        $teacher = Teacher::factory()->create(['email_verified_at' => '2026-09-01 10:00:00']);
+
+        $this->getJson("/api/teachers/{$teacher->id}")
+            ->assertOk()
+            ->assertJsonPath('data.email_verified_at', '2026-09-01T10:00:00.000000Z')
+            ->assertJsonMissingPath('data.password');
     }
 
     public function test_update_updates_a_teacher(): void

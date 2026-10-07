@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class UpdateTeacherRequest extends FormRequest
 {
@@ -33,6 +34,7 @@ class UpdateTeacherRequest extends FormRequest
             ],
             'phone' => ['sometimes', 'string', 'max:20'],
             'specialization' => ['sometimes', 'string', 'max:255'],
+            'password' => ['sometimes', 'string', Password::defaults()],
             'image' => ['sometimes', 'nullable', 'image', 'max:4096'],
         ];
     }

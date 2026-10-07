@@ -32,19 +32,17 @@ class TeacherInfolist
                                     ->copyable()
                                     ->icon('heroicon-o-envelope'),
 
+                                TextEntry::make('email_verified_at')
+                                    ->label('Email verified at')
+                                    ->dateTime()
+                                    ->placeholder('Not verified'),
+
                                 TextEntry::make('phone')
                                     ->icon('heroicon-o-phone'),
 
                                 TextEntry::make('specialization')
                                     ->columnSpanFull(),
                             ]),
-                    ]),
-
-                Section::make('Panel Access')
-                    ->schema([
-                        TextEntry::make('user.email')
-                            ->label('User account')
-                            ->placeholder('Not linked'),
                     ]),
 
                 Section::make('Profile & Social Links')

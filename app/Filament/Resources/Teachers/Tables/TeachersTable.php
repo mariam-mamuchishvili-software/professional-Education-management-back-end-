@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\Teachers\Tables;
 
+use App\Models\Teacher;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -34,6 +36,12 @@ class TeachersTable
                     ->label('Email address')
                     ->searchable()
                     ->copyable(),
+
+                IconColumn::make('email_verified_at')
+                    ->label('Verified')
+                    ->boolean()
+                    ->state(fn (Teacher $record): bool => $record->email_verified_at !== null)
+                    ->toggleable(),
 
                 TextColumn::make('phone')
                     ->searchable(),

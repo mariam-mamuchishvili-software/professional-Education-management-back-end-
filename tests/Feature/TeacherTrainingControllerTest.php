@@ -33,11 +33,11 @@ class TeacherTrainingControllerTest extends TestCase
 
     public function test_index_lists_only_the_signed_in_teachers_trainings(): void
     {
-        [$user, $teacher] = $this->teacherUser();
+        $teacher = Teacher::factory()->create();
         $own = TeacherTraining::factory()->for($teacher)->create();
         TeacherTraining::factory()->create();
 
-        Sanctum::actingAs($user);
+        Sanctum::actingAs($teacher);
 
         $this->getJson('/api/me/trainings')
             ->assertOk()
@@ -47,9 +47,9 @@ class TeacherTrainingControllerTest extends TestCase
 
     public function test_store_creates_a_training_with_a_certificate_link(): void
     {
-        [$user, $teacher] = $this->teacherUser();
+        $teacher = Teacher::factory()->create();
 
-        Sanctum::actingAs($user);
+        Sanctum::actingAs($teacher);
 
         $this->postJson('/api/me/trainings', [
             'title' => 'Inclusive Education',
@@ -78,9 +78,9 @@ class TeacherTrainingControllerTest extends TestCase
             ]),
         ]);
 
-        [$user, $teacher] = $this->teacherUser();
+        $teacher = Teacher::factory()->create();
 
-        Sanctum::actingAs($user);
+        Sanctum::actingAs($teacher);
 
         $this->postJson('/api/me/trainings', [
             'title' => 'Digital Skills',
@@ -103,7 +103,7 @@ class TeacherTrainingControllerTest extends TestCase
     {
         Http::fake();
 
-        Sanctum::actingAs($this->teacherUser()[0]);
+        Sanctum::actingAs(Teacher::factory()->create());
 
         $this->postJson('/api/me/trainings', [
             'title' => 'Digital Skills',
@@ -129,7 +129,7 @@ class TeacherTrainingControllerTest extends TestCase
     {
         Http::fake();
 
-        Sanctum::actingAs($this->teacherUser()[0]);
+        Sanctum::actingAs(Teacher::factory()->create());
 
         $this->postJson('/api/me/trainings', [
             'title' => 'Digital Skills',
@@ -153,7 +153,7 @@ class TeacherTrainingControllerTest extends TestCase
 
     public function test_store_requires_title_and_organizer_and_an_expiry_on_or_after_issue(): void
     {
-        Sanctum::actingAs($this->teacherUser()[0]);
+        Sanctum::actingAs(Teacher::factory()->create());
 
         $this->postJson('/api/me/trainings', [
             'issue_date' => '2024-03-01',
@@ -172,12 +172,12 @@ class TeacherTrainingControllerTest extends TestCase
             'api.cloudinary.com/v1_1/demo-cloud/image/destroy' => Http::response(['result' => 'ok']),
         ]);
 
-        [$user, $teacher] = $this->teacherUser();
+        $teacher = Teacher::factory()->create();
         $training = TeacherTraining::factory()->for($teacher)->create([
             'certificate_url' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/teacher-certificates/old.pdf',
         ]);
 
-        Sanctum::actingAs($user);
+        Sanctum::actingAs($teacher);
 
         $this->post("/api/me/trainings/{$training->id}", [
             '_method' => 'PATCH',
@@ -196,12 +196,12 @@ class TeacherTrainingControllerTest extends TestCase
             'api.cloudinary.com/v1_1/demo-cloud/image/destroy' => Http::response(['result' => 'ok']),
         ]);
 
-        [$user, $teacher] = $this->teacherUser();
+        $teacher = Teacher::factory()->create();
         $training = TeacherTraining::factory()->for($teacher)->create([
             'certificate_url' => 'https://res.cloudinary.com/demo-cloud/image/upload/v1/eduhub/teacher-certificates/to-delete.pdf',
         ]);
 
-        Sanctum::actingAs($user);
+        Sanctum::actingAs($teacher);
 
         $this->deleteJson("/api/me/trainings/{$training->id}")
             ->assertOk()
@@ -217,7 +217,7 @@ class TeacherTrainingControllerTest extends TestCase
     {
         $training = TeacherTraining::factory()->create(['title' => 'Original']);
 
-        Sanctum::actingAs($this->teacherUser()[0]);
+        Sanctum::actingAs(Teacher::factory()->create());
 
         $this->getJson("/api/me/trainings/{$training->id}")->assertNotFound();
         $this->patchJson("/api/me/trainings/{$training->id}", ['title' => 'Hijacked'])->assertNotFound();
@@ -235,17 +235,5 @@ class TeacherTrainingControllerTest extends TestCase
         $this->deleteJson("/api/me/trainings/{$training->id}")->assertOk();
 
         $this->assertModelMissing($training);
-    }
-
-    /**
-     * A user with the teacher role linked to a teacher profile.
-     *
-     * @return array{User, Teacher}
-     */
-    private function teacherUser(): array
-    {
-        $user = User::factory()->teacher()->create();
-
-        return [$user, Teacher::factory()->for($user)->create()];
     }
 }

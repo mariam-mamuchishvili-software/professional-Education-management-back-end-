@@ -6,7 +6,6 @@ enum UserRole: string
 {
     case SuperAdmin = 'super_admin';
     case CollegeAdmin = 'college_admin';
-    case Teacher = 'teacher';
 
     /**
      * Roles with full administrative access to the panel.

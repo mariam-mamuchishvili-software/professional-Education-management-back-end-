@@ -20,7 +20,7 @@ class TeacherPolicy
      */
     public function view(User $user, Teacher $teacher): bool
     {
-        return $user->isAdmin() || ($teacher->user_id !== null && $teacher->user_id === $user->id);
+        return $user->isAdmin();
     }
 
     /**

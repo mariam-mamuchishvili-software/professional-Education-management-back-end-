@@ -178,6 +178,7 @@ class CloudinaryImageUploadTest extends TestCase
             'first_name' => 'Nino',
             'last_name' => 'Beridze',
             'email' => 'teacher-image@example.com',
+            'password' => 'secret-password',
             'phone' => '+995 555 123 456',
             'specialization' => 'Mathematics',
             'image' => UploadedFile::fake()->image('teacher.jpg'),

@@ -147,12 +147,11 @@ class TeacherQualificationRelationManagersTest extends TestCase
     }
 
     #[DataProvider('relationManagers')]
-    public function test_relation_manager_is_hidden_from_a_teacher_even_for_their_own_profile(string $relationManager): void
+    public function test_relation_manager_is_hidden_from_a_user_without_an_admin_role(string $relationManager): void
     {
-        $user = User::factory()->teacher()->create();
-        $teacher = Teacher::factory()->for($user)->create();
+        $teacher = Teacher::factory()->create();
 
-        $this->actingAs($user);
+        $this->actingAs(User::factory()->create());
 
         $this->assertFalse($relationManager::canViewForRecord($teacher, EditTeacher::class));
     }

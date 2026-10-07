@@ -10,9 +10,10 @@ use App\Models\Module;
 use App\Models\Teacher;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
-use Filament\Forms\Components\Select;
+use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -52,6 +53,7 @@ class TeacherResourceTest extends TestCase
                 'first_name' => 'Nino',
                 'last_name' => 'Kapanadze',
                 'email' => 'nino@example.com',
+                'password' => 'secret-password',
                 'phone' => '+995 555 111 222',
                 'specialization' => 'Mathematics',
                 'colleges' => $colleges->pluck('id')->all(),
@@ -66,13 +68,14 @@ class TeacherResourceTest extends TestCase
         $this->assertCount(2, $teacher->modules);
     }
 
-    public function test_create_requires_first_name_last_name_email_phone_and_specialization(): void
+    public function test_create_requires_first_name_last_name_email_password_phone_and_specialization(): void
     {
         Livewire::test(CreateTeacher::class)
             ->fillForm([
                 'first_name' => '',
                 'last_name' => '',
                 'email' => '',
+                'password' => '',
                 'phone' => '',
                 'specialization' => '',
             ])
@@ -81,9 +84,73 @@ class TeacherResourceTest extends TestCase
                 'first_name' => 'required',
                 'last_name' => 'required',
                 'email' => 'required',
+                'password' => 'required',
                 'phone' => 'required',
                 'specialization' => 'required',
             ]);
+    }
+
+    public function test_create_generates_a_passphrase_and_verifies_the_email_automatically(): void
+    {
+        $this->freezeSecond();
+
+        $component = Livewire::test(CreateTeacher::class);
+        $passphrase = $component->get('data.password');
+
+        $this->assertMatchesRegularExpression('/^([A-Z][a-z]+-){4}\d{2}$/', $passphrase);
+
+        $component
+            ->fillForm([
+                'first_name' => 'Nino',
+                'last_name' => 'Kapanadze',
+                'email' => 'nino@example.com',
+                'phone' => '+995 555 111 222',
+                'specialization' => 'Mathematics',
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $teacher = Teacher::where('email', 'nino@example.com')->firstOrFail();
+
+        $this->assertTrue(Hash::check($passphrase, $teacher->password));
+        $this->assertTrue($teacher->email_verified_at->equalTo(now()));
+    }
+
+    public function test_generate_action_replaces_the_password_with_a_new_passphrase(): void
+    {
+        $teacher = Teacher::factory()->create();
+
+        $component = Livewire::test(EditTeacher::class, ['record' => $teacher->getRouteKey()])
+            ->assertSchemaStateSet(['password' => null])
+            ->callAction(TestAction::make('generatePassphrase')->schemaComponent('password'));
+
+        $passphrase = $component->get('data.password');
+
+        $this->assertMatchesRegularExpression('/^([A-Z][a-z]+-){4}\d{2}$/', $passphrase);
+
+        $component->call('save')->assertHasNoFormErrors();
+
+        $this->assertTrue(Hash::check($passphrase, $teacher->fresh()->password));
+    }
+
+    public function test_edit_keeps_the_password_when_left_empty_and_changes_it_when_filled(): void
+    {
+        $teacher = Teacher::factory()->create();
+
+        Livewire::test(EditTeacher::class, ['record' => $teacher->getRouteKey()])
+            ->assertSchemaStateSet(['password' => null])
+            ->fillForm(['password' => ''])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertTrue(Hash::check('password', $teacher->fresh()->password));
+
+        Livewire::test(EditTeacher::class, ['record' => $teacher->getRouteKey()])
+            ->fillForm(['password' => 'new-secret-password'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertTrue(Hash::check('new-secret-password', $teacher->fresh()->password));
     }
 
     public function test_create_rejects_a_duplicate_email(): void
@@ -119,45 +186,6 @@ class TeacherResourceTest extends TestCase
         ]);
     }
 
-    public function test_can_link_a_user_account_to_a_teacher(): void
-    {
-        $teacher = Teacher::factory()->create();
-        $user = User::factory()->teacher()->create();
-
-        Livewire::test(EditTeacher::class, ['record' => $teacher->getRouteKey()])
-            ->fillForm(['user_id' => $user->id])
-            ->call('save')
-            ->assertHasNoFormErrors();
-
-        $this->assertTrue($teacher->fresh()->user->is($user));
-    }
-
-    public function test_cannot_link_a_user_already_linked_to_another_teacher(): void
-    {
-        $user = User::factory()->teacher()->create();
-        Teacher::factory()->for($user)->create();
-        $teacher = Teacher::factory()->create();
-
-        Livewire::test(EditTeacher::class, ['record' => $teacher->getRouteKey()])
-            ->assertFormFieldExists('user_id', fn (Select $field): bool => ! array_key_exists($user->id, $field->getOptions()))
-            ->fillForm(['user_id' => $user->id])
-            ->call('save')
-            ->assertHasFormErrors(['user_id']);
-
-        $this->assertNull($teacher->fresh()->user_id);
-    }
-
-    public function test_create_form_offers_only_users_without_a_teacher_profile(): void
-    {
-        $linkedUser = User::factory()->create();
-        Teacher::factory()->for($linkedUser)->create();
-        $freeUser = User::factory()->create();
-
-        Livewire::test(CreateTeacher::class)
-            ->assertFormFieldExists('user_id', fn (Select $field): bool => array_key_exists($freeUser->id, $field->getOptions())
-                && ! array_key_exists($linkedUser->id, $field->getOptions()));
-    }
-
     public function test_can_delete_a_teacher(): void
     {
         $teacher = Teacher::factory()->create();
@@ -182,6 +210,7 @@ class TeacherResourceTest extends TestCase
                 'first_name' => 'Nino',
                 'last_name' => 'Kapanadze',
                 'email' => 'nino-image@example.com',
+                'password' => 'secret-password',
                 'phone' => '+995 555 111 222',
                 'specialization' => 'Mathematics',
                 'image' => UploadedFile::fake()->image('teacher.jpg'),
